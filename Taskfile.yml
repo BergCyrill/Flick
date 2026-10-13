@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  APP: build/Flick.app
+
 tasks:
   test:
     desc: Run the unit tests
@@ -16,3 +19,25 @@ tasks:
     desc: Format all Swift sources in place
     cmds:
       - swift format format --in-place --recursive Sources Tests Package.swift
+
+  build:
+    desc: Build a release binary
+    cmds:
+      - swift build -c release
+
+  bundle:
+    desc: Assemble and ad-hoc sign build/Flick.app
+    deps: [build]
+    cmds:
+      - rm -rf {{.APP}}
+      - mkdir -p {{.APP}}/Contents/MacOS
+      - cp support/Info.plist {{.APP}}/Contents/Info.plist
+      - cp "$(swift build -c release --show-bin-path)/Flick" {{.APP}}/Contents/MacOS/Flick
+      - codesign --force --sign - {{.APP}}
+
+  run:
+    desc: Bundle and (re)start Flick
+    deps: [bundle]
+    cmds:
+      - pkill -x Flick || true
+      - open {{.APP}}

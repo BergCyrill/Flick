@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     targets: [
         .target(name: "FlickCore"),
+        .executableTarget(name: "Flick", dependencies: ["FlickCore"]),
         .testTarget(name: "FlickCoreTests", dependencies: ["FlickCore"]),
     ]
 )
