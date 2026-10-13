@@ -35,3 +35,35 @@ support/Info.plist       app bundle metadata used by `task bundle`
 docs/design/             design drivers (gesture map, live preview)
 docs/superpowers/        spec and implementation plan
 ```
+
+## Usage
+
+Put the pointer on a window's titlebar (the top 40 pt, toolbars included), then:
+
+| Gesture (two fingers) | Result |
+|---|---|
+| swipe ← / → | left / right half |
+| swipe ↑ / ↓ | top / bottom half |
+| swipe ↖ ↗ ↙ ↘ | matching quarter |
+| pinch out | fill the screen (8 pt margin) |
+| pinch in | restore the frame from before Flick's last move |
+
+A blue preview shows the target while your fingers move. The window moves when you lift them.
+Swipe back to where you started to cancel. Gestures that start anywhere else go to the app as
+usual. *Pause gestures* in the menu-bar item turns Flick off without quitting.
+
+## Manual test checklist
+
+Run after changes to `Sources/Flick/`, with `task run`, on the built-in trackpad and, if
+available, a Magic Trackpad:
+
+- [ ] Finder, Safari, Terminal, VS Code: each of the 8 swipe directions snaps to the right slot with 8 pt gaps.
+- [ ] The preview appears after a short swipe, follows direction changes, and disappears on lift.
+- [ ] Swiping back to the start before lifting leaves the window where it was.
+- [ ] Pinch out fills; pinch in afterwards restores the previous frame; a second pinch in does nothing.
+- [ ] Scrolling inside a window, a Safari tab strip below the titlebar zone, and the desktop behaves normally.
+- [ ] Pinch-to-zoom inside Safari and Preview still zooms.
+- [ ] With natural scrolling switched off (System Settings → Trackpad), ↖ still snaps top-left.
+- [ ] *Pause gestures* stops all snapping; unpausing brings it back.
+- [ ] Remove Flick from Accessibility while running: the menu shows "Waiting for Accessibility access" after a relaunch.
+- [ ] Second display (if available): snapping uses the display under the pointer.
