@@ -1,0 +1,18 @@
+version: "3"
+
+tasks:
+  test:
+    desc: Run the unit tests
+    cmds:
+      - swift test
+
+  lint:
+    desc: Run swiftlint and swift-format in strict mode
+    cmds:
+      - swiftlint lint --strict --quiet
+      - swift format lint --strict --recursive Sources Tests Package.swift
+
+  format:
+    desc: Format all Swift sources in place
+    cmds:
+      - swift format format --in-place --recursive Sources Tests Package.swift

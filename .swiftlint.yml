@@ -1,0 +1,11 @@
+included:
+  - Sources
+  - Tests
+  - Package.swift
+# swift-format owns layout; these rules disagree with its output.
+disabled_rules:
+  - trailing_comma
+  - opening_brace
+  - line_length
+identifier_name:
+  excluded: [x, y, dx, dy, id]
