@@ -175,4 +175,34 @@ final class FakeProbe: TitlebarProbe {
         #expect(result.decisions == [.swallow, .passThrough, .passThrough, .passThrough, .swallow])
         #expect(result.updates == [.preview(context, .slot(.fill)), .commit(context, .slot(.fill))])
     }
+
+    @Test func newSwipeAfterALostEndCancelsTheOldOne() {
+        // The tap missed the first swipe's `ended` (e.g. it was disabled by a timeout).
+        let result = run([swipe(.began, -60, 0), swipe(.began, 60, 0)], probe: FakeProbe(window: window))
+        #expect(
+            result.updates == [
+                .preview(context, .slot(.leftHalf)), .cancel, .preview(context, .slot(.rightHalf)),
+            ])
+    }
+
+    @Test func newPinchAfterALostEndCancelsTheOldOne() {
+        let result = run([pinch(.began, 0.3), pinch(.began, -0.3)], probe: FakeProbe(window: window))
+        #expect(result.updates == [.preview(context, .slot(.fill)), .cancel, .preview(context, .restore)])
+    }
+
+    @Test func resetCancelsAGestureInProgressAndReturnsToIdle() {
+        var updates: [GestureUpdate] = []
+        let recognizer = GestureRecognizer(probe: FakeProbe(window: window)) { updates.append($0) }
+        _ = recognizer.handle(swipe(.began, -60, 0))
+        recognizer.reset()
+        #expect(updates == [.preview(context, .slot(.leftHalf)), .cancel])
+        #expect(recognizer.handle(swipe(.changed, -60, 0)) == .passThrough)
+    }
+
+    @Test func resetWhenIdleEmitsNothing() {
+        var updates: [GestureUpdate] = []
+        let recognizer = GestureRecognizer(probe: FakeProbe(window: window)) { updates.append($0) }
+        recognizer.reset()
+        #expect(updates.isEmpty)
+    }
 }

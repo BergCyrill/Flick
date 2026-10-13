@@ -62,11 +62,18 @@ public final class GestureRecognizer {
         }
     }
 
+    /// Abandons any gesture in progress, e.g. after the event tap was disabled and events were lost.
+    public func reset() {
+        cancelGestureInProgress()
+        state = .idle
+    }
+
     private func handleScroll(phase: GesturePhase, dx: Double, dy: Double, location: GlobalPoint) -> EventDecision {
         switch (state, phase) {
         case (.pinching, _), (_, .mayBegin):
             return .passThrough
         case (_, .began):
+            cancelGestureInProgress()
             guard let context = claim(at: location) else {
                 state = .idle
                 return .passThrough
@@ -113,6 +120,7 @@ public final class GestureRecognizer {
         case (.swiping, _), (_, .mayBegin):
             return .passThrough
         case (_, .began):
+            cancelGestureInProgress()
             guard let context = claim(at: location) else {
                 state = .idle
                 return .passThrough
@@ -162,6 +170,16 @@ public final class GestureRecognizer {
             onUpdate(.commit(context, target))
         } else {
             onUpdate(.cancel)
+        }
+    }
+
+    /// A claimed gesture that never saw its `ended` must not leave its preview behind.
+    private func cancelGestureInProgress() {
+        switch state {
+        case .swiping, .pinching:
+            onUpdate(.cancel)
+        case .idle, .swallowingMomentum:
+            break
         }
     }
 }

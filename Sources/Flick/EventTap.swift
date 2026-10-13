@@ -49,6 +49,8 @@ final class EventTap {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             Self.logger.warning("Event tap disabled by the system (type \(type.rawValue)), re-enabling")
             if let port { CGEvent.tapEnable(tap: port, enable: true) }
+            // Events were lost while disabled; don't wait for an `ended` that may never come.
+            recognizer.reset()
             return false
         }
         guard let input else { return false }
