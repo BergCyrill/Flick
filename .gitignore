@@ -1,0 +1,15 @@
+# SwiftPM / build output
+.build/
+build/
+.swiftpm/
+
+# Nix / direnv
+.direnv/
+result
+
+# Local secrets
+.env
+.env.*
+
+# macOS
+.DS_Store
