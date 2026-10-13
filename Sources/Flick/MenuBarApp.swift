@@ -6,6 +6,10 @@ import FlickCore
 final class MenuBarApp: NSObject, NSApplicationDelegate {
     private static let settingsURL = URL(
         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+    /// Seconds an Accessibility call may block. Set on the system-wide element it applies to
+    /// every AX call Flick makes, so a hung app can't stall the event tap (and with it all
+    /// scrolling) for the default ~6 s.
+    private static let accessibilityTimeout: Float = 0.25
 
     private var statusItem: NSStatusItem?
     private let statusLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
@@ -16,8 +20,13 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var trustTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), Self.accessibilityTimeout)
         let controller = FlickController(windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay())
-        let recognizer = GestureRecognizer(probe: TitlebarHitTester()) { controller.handle($0) }
+        // Updates are handled after the tap callback returns: moving a window takes several
+        // Accessibility round-trips, and the swallow decision doesn't depend on them.
+        let recognizer = GestureRecognizer(probe: TitlebarHitTester()) { update in
+            DispatchQueue.main.async { controller.handle(update) }
+        }
         self.recognizer = recognizer
         tap = EventTap(recognizer: recognizer)
         buildMenu()
