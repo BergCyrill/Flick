@@ -1,7 +1,7 @@
 import AppKit
 import FlickCore
 
-/// Menu-bar item and Accessibility handling.
+/// Menu-bar item, Accessibility handling and wiring of the whole app.
 @MainActor
 final class MenuBarApp: NSObject, NSApplicationDelegate {
     private static let settingsURL = URL(
@@ -10,13 +10,21 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let statusLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let accessLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-    private var trusted = false
+    private let pauseItem = NSMenuItem(title: "Pause gestures", action: nil, keyEquivalent: "")
+    private var recognizer: GestureRecognizer?
+    private var tap: EventTap?
     private var trustTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let controller = FlickController(windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay())
+        let recognizer = GestureRecognizer(probe: TitlebarHitTester()) { controller.handle($0) }
+        self.recognizer = recognizer
+        tap = EventTap(recognizer: recognizer)
         buildMenu()
-        trusted = Accessibility.isTrusted(prompt: true)
-        if !trusted {
+
+        if Accessibility.isTrusted(prompt: true) {
+            startTap()
+        } else {
             waitForTrust()
         }
         refreshMenu()
@@ -33,6 +41,10 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         menu.addItem(statusLine)
         menu.addItem(accessLine)
         menu.addItem(.separator())
+        pauseItem.target = self
+        pauseItem.action = #selector(togglePause)
+        menu.addItem(pauseItem)
+        menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(title: "Quit Flick", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -40,7 +52,13 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     }
 
     private func refreshMenu() {
-        statusLine.title = trusted ? "Flick is active" : "Waiting for Accessibility access"
+        let trusted = tap?.isRunning ?? false
+        let paused = recognizer?.isPaused ?? false
+        if !trusted {
+            statusLine.title = "Waiting for Accessibility access"
+        } else {
+            statusLine.title = paused ? "Flick is paused" : "Flick is active"
+        }
         if trusted {
             accessLine.title = "Accessibility access granted"
             accessLine.isEnabled = false
@@ -51,6 +69,13 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             accessLine.target = self
             accessLine.action = #selector(openAccessibilitySettings)
         }
+        pauseItem.state = paused ? .on : .off
+        pauseItem.isEnabled = trusted
+    }
+
+    private func startTap() {
+        _ = tap?.start()
+        refreshMenu()
     }
 
     private func waitForTrust() {
@@ -63,7 +88,11 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         guard Accessibility.isTrusted(prompt: false) else { return }
         trustTimer?.invalidate()
         trustTimer = nil
-        trusted = true
+        startTap()
+    }
+
+    @objc private func togglePause() {
+        recognizer?.isPaused.toggle()
         refreshMenu()
     }
 
