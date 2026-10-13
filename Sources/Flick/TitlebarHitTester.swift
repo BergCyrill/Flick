@@ -5,8 +5,6 @@ import Foundation
 /// Finds the standard window whose titlebar zone (top 40 pt) is under a point.
 @MainActor
 final class TitlebarHitTester: TitlebarProbe {
-    static let titlebarHeight: Double = 40
-
     private let systemWide = AXUIElementCreateSystemWide()
     private let ownPID = ProcessInfo.processInfo.processIdentifier
 
@@ -23,9 +21,8 @@ final class TitlebarHitTester: TitlebarProbe {
             let frame = Accessibility.frame(of: window)
         else { return nil }
 
-        let titlebar = GlobalRect(
-            x: frame.x, y: frame.y, width: frame.width, height: min(Self.titlebarHeight, frame.height))
-        return titlebar.contains(point) ? WindowHandle(window) : nil
+        let isFullScreen = Accessibility.bool(window, "AXFullScreen") ?? false
+        return TitlebarZone.contains(point, windowFrame: frame, isFullScreen: isFullScreen) ? WindowHandle(window) : nil
     }
 
     private static func window(containing element: AXUIElement) -> AXUIElement? {

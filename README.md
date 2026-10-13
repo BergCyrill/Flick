@@ -63,6 +63,7 @@ available, a Magic Trackpad:
 - [ ] Pinch out fills; pinch in afterwards restores the previous frame; a second pinch in does nothing.
 - [ ] Scrolling inside a window, a Safari tab strip below the titlebar zone, and the desktop behaves normally.
 - [ ] Pinch-to-zoom inside Safari and Preview still zooms.
+- [ ] In a fullscreen app (e.g. Safari or Terminal), scrolling and pinch-zooming near the top edge behave normally and Flick shows no preview.
 - [ ] With natural scrolling switched off (System Settings → Trackpad), ↖ still snaps top-left.
 - [ ] *Pause gestures* stops all snapping; unpausing brings it back.
 - [ ] Remove Flick from Accessibility while running: the menu shows "Waiting for Accessibility access" after a relaunch.

@@ -14,6 +14,10 @@ enum Accessibility {
         copy(element, attribute) as? String
     }
 
+    static func bool(_ element: AXUIElement, _ attribute: String) -> Bool? {
+        copy(element, attribute) as? Bool
+    }
+
     static func element(_ element: AXUIElement, _ attribute: String) -> AXUIElement? {
         guard let value = copy(element, attribute), CFGetTypeID(value) == AXUIElementGetTypeID() else {
             return nil
