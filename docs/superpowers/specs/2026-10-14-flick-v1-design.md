@@ -1,8 +1,20 @@
 # Flick v1 — design
 
 - **Date:** 2026-10-14
-- **Status:** approved design, pending spec review
+- **Status:** approved
 - **Design drawing:** [Flick design canvas](https://claude.ai/artifact/8NszVx1Eqce2uHPLTWRneV) (gesture map, live preview, architecture)
+
+## Design drivers
+
+These drawings define the expected behaviour and look. If code and drawing disagree, the
+drawing wins until it is updated.
+
+| Gesture map | Live preview & menu bar |
+|---|---|
+| ![Gesture map](../../design/gesture-map.png) | ![Live preview & menu bar](../../design/live-preview-menu-bar.png) |
+
+The editable source is the design canvas linked above; the PNGs in `docs/design/` are renders
+of it.
 
 ## Goal
 
@@ -84,27 +96,27 @@ One Swift package, two targets. See the *Architecture* artboard in the design ca
 
 Everything with logic in it. All of it is deterministic and unit-tested.
 
-- **`Geometry`:** `Point`, `Size`, `Rect` value types in a top-left-origin global coordinate
+- **`Geometry`:** `GlobalPoint` and `GlobalRect` value types (named so they don't clash with the MacTypes `Point` / `Rect` that ApplicationServices imports) in a top-left-origin global coordinate
   space (the space CGEvent and Accessibility use). Includes a helper to convert an
   `NSScreen`-style bottom-left-origin rect, given the primary screen height.
 - **`Slot`:** `leftHalf`, `rightHalf`, `topHalf`, `bottomHalf`, `topLeft`, `topRight`,
   `bottomLeft`, `bottomRight`, `fill`.
 - **`Target`:** what a gesture is aiming at: `.slot(Slot)` or `.restore`.
-- **`WindowRef`:** an opaque `Hashable` handle the adapters hand out for a window. `FlickCore`
+- **`WindowHandle`:** an opaque `Hashable` handle the adapters hand out for a window. `FlickCore`
   never looks inside it.
 - **`DirectionClassifier`:** maps an accumulated finger translation `(dx, dy)` to an optional
   `Slot`. Returns `nil` below a minimum distance (`40 pt`). Otherwise picks one of 8 sectors of
   45° each, centred on the 8 directions.
-- **`LayoutEngine`:** `frame(for: Slot, in visibleFrame: Rect, gap: Double) -> Rect`. The gap
+- **`LayoutEngine`:** `frame(for: Slot, in visibleFrame: GlobalRect, gap: Double) -> GlobalRect`. The gap
   applies against every edge and between neighbouring slots: a half is
   `(visible − 3·gap) / 2` wide, a quarter is that in both dimensions, fill is
   `visible` inset by `gap`. Results are rounded to whole points.
 - **`GestureRecognizer`:** a state machine fed with normalised input events (`InputEvent`: a
   scroll phase/momentum/delta, or a magnify phase/delta, plus the pointer location). Steps:
   1. On swipe `began` / magnify `began` it asks a `TitlebarProbe` (protocol,
-     `window(atTitlebar: Point) -> WindowRef?`) for the window whose titlebar is under the
+     `window(atTitlebar: GlobalPoint) -> WindowHandle?`) for the window whose titlebar is under the
      pointer. If none, the gesture is ignored to its end.
-  2. If there is one, it claims the gesture for that `WindowRef`: it returns `.swallow` for every
+  2. If there is one, it claims the gesture for that `WindowHandle`: it returns `.swallow` for every
      event until the gesture ends, plus all momentum events that directly follow it.
   3. It emits `GestureUpdate`s for the claimed window: `.preview(Target?)` while moving (swipes:
      `.slot` from `DirectionClassifier`; pinches: `.slot(.fill)` once cumulative magnification
@@ -112,10 +124,10 @@ Everything with logic in it. All of it is deterministic and unit-tested.
      with a non-nil target, or `.cancel` on `cancelled` or when the final target is `nil`.
   - Finger direction is normalised: when the event says the scroll direction is inverted
     (natural scrolling), deltas are negated so that "fingers move up-left" always means ↖.
-- **`FrameHistory`:** remembers, per `WindowRef`, the frame the window had before Flick last
+- **`FrameHistory`:** remembers, per `WindowHandle`, the frame the window had before Flick last
   moved it: `record(_:for:)`, `take(for:)`.
 - **`FlickController`:** connects the recogniser's updates to the effects, through protocols:
-  `WindowAccess` (read / set a `WindowRef`'s frame), `ScreenProvider` (visible frame of the
+  `WindowAccess` (read / set a `WindowHandle`'s frame), `ScreenProvider` (visible frame of the
   screen containing a point), `PreviewPresenter` (show rect / hide).
   - On preview: it computes the target rect (`LayoutEngine` for a slot, `FrameHistory` peek for
     restore) and shows it.
@@ -136,7 +148,7 @@ Thin wrappers, kept small enough to check by reading and by hand.
 - **`TitlebarHitTester`** (`TitlebarProbe`): uses `AXUIElementCopyElementAtPosition` on the
   system-wide element, walks up to the `AXWindow`, and requires subrole `AXStandardWindow`.
   "On the titlebar" means the pointer is inside the window frame and within its top **40 pt**.
-  Windows of Flick's own process are ignored. Returns a `WindowRef` wrapping the `AXUIElement`
+  Windows of Flick's own process are ignored. Returns a `WindowHandle` wrapping the `AXUIElement`
   (hashed and compared with `CFHash` / `CFEqual`).
 - **`WindowMover`** (`WindowAccess`): reads `AXPosition` / `AXSize`, sets position, then size,
   then position again (so a window being moved to a smaller screen area isn't clamped by its old
@@ -153,7 +165,7 @@ Thin wrappers, kept small enough to check by reading and by hand.
 ### Data flow (swipe)
 
 `CGEvent` → `EventTap` → `InputEvent` → `GestureRecognizer` (asks `TitlebarHitTester`, gets a
-`WindowRef`) → `.preview(.slot(s))` → `FlickController` → `LayoutEngine` → `PreviewOverlay` …
+`WindowHandle`) → `.preview(.slot(s))` → `FlickController` → `LayoutEngine` → `PreviewOverlay` …
 fingers lift → `.commit(.slot(s))` → `FlickController` → `FrameHistory.record` →
 `WindowMover` sets the frame → overlay hides.
 
@@ -189,7 +201,7 @@ Follows the global repo conventions:
 - **Build:** SwiftPM (`Package.swift`, Swift 6 language mode, macOS 14+ deployment target).
   The Apple toolchain comes from the installed Xcode. Nix doesn't provide Swift itself,
   because the nixpkgs Swift lags behind macOS 26.
-- **`flake.nix` dev shell:** `go-task`, `swiftlint`, `swift-format`, `pre-commit`. It exports
+- **`flake.nix` dev shell:** `go-task`, `swiftlint`, `pre-commit` (`swift format` ships with Xcode). It exports
   nothing that hides Xcode's `swift` / `sourcekit-lsp` from `$PATH`, so the VS Code Swift
   extension finds `sourcekit-lsp`. Inputs are pinned via `flake.lock`. `.envrc` contains
   `use flake`.
