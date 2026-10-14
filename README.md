@@ -1,4 +1,9 @@
-# Flick
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/flick-logo-dark.svg">
+    <img alt="Flick" src="docs/logo/flick-logo-light.svg" height="64">
+  </picture>
+</h1>
 
 Two-finger trackpad gestures on a window's titlebar that snap macOS windows: swipe for halves
 and quarters, pinch out to fill, pinch in to restore. A free, minimal take on
@@ -33,6 +38,7 @@ Sources/Flick/           macOS adapters: event tap, Accessibility, overlay, menu
 Tests/FlickCoreTests/    swift-testing suites for FlickCore
 support/Info.plist       app bundle metadata used by `task bundle`
 docs/design/             design drivers (gesture map, live preview)
+docs/logo/               logo lockups (light/dark), mark, social preview
 docs/superpowers/        spec and implementation plan
 ```
 
