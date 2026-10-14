@@ -58,6 +58,10 @@ A blue preview shows the target while your fingers move. The window moves when y
 Swipe back to where you started to cancel. Gestures that start anywhere else go to the app as
 usual. *Pause gestures* in the menu-bar item turns Flick off without quitting.
 
+*Settings…* (⌘,) in the menu-bar item turns each gesture and the live preview on or off and
+starts Flick at login. A gesture that is off swallows nothing: its scrolls and pinches reach the
+app. Changes apply from the next gesture.
+
 ## Manual test checklist
 
 Run after changes to `Sources/Flick/`, with `task run`, on the built-in trackpad and, if
@@ -75,3 +79,8 @@ available, a Magic Trackpad:
 - [ ] *Pause gestures* stops all snapping; unpausing brings it back.
 - [ ] Remove Flick from Accessibility while running: the menu shows "Waiting for Accessibility access" after a relaunch.
 - [ ] Second display (if available): snapping uses the display under the pointer.
+- [ ] Settings: with *Swipe on titlebar to snap* off, a titlebar swipe scrolls the app (e.g. Safari's tab strip) and pinch still works; the same the other way round for *Pinch on titlebar*.
+- [ ] Settings: with *Show live preview* off, no overlay appears and windows still move on lift.
+- [ ] Settings survive a relaunch (`task run`).
+- [ ] *Pause gestures* while the settings window is open shows the paused note; unpausing hides it.
+- [ ] *Launch at login* on: Flick appears in System Settings → General → Login Items and starts after logging out and in; off removes it. If macOS wants approval, the hint says so and *Open Login Items…* opens the pane.
