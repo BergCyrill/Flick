@@ -70,8 +70,9 @@ The preview follows the pointer; the window changes when you release the button.
 cancel.
 
 With *Right button* (or *Both*) chosen under *Scroll to fill and restore* in Settings, hold the
-right button on a titlebar instead and scroll: the window stays where it is and fills or restores
-when you let go. A right-click without scrolling still opens the app's menu, on release.
+mouse's right button on a titlebar instead and scroll: the window stays where it is and fills or
+restores when you let go. A right-click without scrolling still opens the app's menu, on release.
+This works with a mouse only, not with a trackpad's two-finger click.
 
 *Settings…* (⌘,) in the menu-bar item turns each gesture and the live preview on or off, chooses
 the button for scroll to fill and restore, and starts Flick at login. A gesture that is off
@@ -109,9 +110,9 @@ available, a Magic Trackpad:
 - [ ] With *Scroll to fill and restore* set to *Off* or *Right button*, scrolling during a left drag reaches the app.
 - [ ] After updating from a build with the *Scroll while dragging* switch: the picker shows *Left button* if the switch was on, *Off* if it was off; the choice survives a relaunch.
 - [ ] *Right button*: hold right on a Finder, Safari, Terminal and VS Code titlebar and scroll away: fill preview; release: the window fills and stays filled. Towards you on a window Flick snapped: restores to its frame from before the first snap.
-- [ ] *Right button*: a plain right-click on a titlebar or toolbar (Finder *Customize Toolbar…*, a Safari tab, VS Code's title bar) opens the menu once, on release; choosing an item works.
+- [ ] *Right button*: a plain right-click on a titlebar or toolbar (Finder *Customize Toolbar…*, a Safari tab, VS Code's title bar) opens the menu once, on release, also after holding the button for a second; choosing an item works.
 - [ ] *Right button*: hold, scroll away and back, release: no menu, nothing moves.
 - [ ] Right-clicks in window contents, on the desktop and in the Dock behave as usual with every picker value.
 - [ ] *Left button* and *Off*: holding right and scrolling on a titlebar opens the menu on press as usual and scrolls nothing special.
 - [ ] Fullscreen window: right-click and right-hold + scroll near the top edge behave as usual.
-- [ ] Trackpad: two-finger-click and hold on a titlebar, scroll with two other fingers: same as with the mouse.
+- [ ] Trackpad, *Right button*: a plain two-finger click on a titlebar opens the menu as usual.

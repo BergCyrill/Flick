@@ -104,6 +104,9 @@ One PR (PR C) on `feature/no-ref/right-button-scroll`, branched from `main` afte
   (bounded by Flick's 0.25 s Accessibility timeout) before it continues.
 - This gives up v1's rule that Flick never swallows mouse events, for right presses on titlebars
   only and only while the picker includes *Right*.
+- Mouse only. A trackpad's two-finger click is not seen as a held right button by the hardware
+  state Flick reads (manual check, 2026-10-15), so two-finger-click-and-hold plus scroll on a
+  titlebar does nothing: no fill and no menu. A plain two-finger click is replayed as usual.
 
 ## Architecture
 
@@ -173,5 +176,5 @@ One PR (PR C) on `feature/no-ref/right-button-scroll`, branched from `main` afte
 - **`DragScrollRecognizerTests`**: the existing "off" test uses `.off` and `.right`.
 - **Manual checklist** (README): fill, restore and a plain right-click on titlebars in Finder,
   Safari (incl. the tab menu), Terminal and VS Code; right-clicks elsewhere unchanged; each picker
-  value; the old setting carried over after a relaunch; fullscreen windows ignored; trackpad
-  two-finger-click hold plus scroll.
+  value; the old setting carried over after a relaunch; fullscreen windows ignored; a slow
+  right-click; a plain trackpad two-finger click.
