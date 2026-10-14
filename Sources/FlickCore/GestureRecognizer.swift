@@ -4,14 +4,29 @@ public protocol TitlebarProbe: AnyObject {
     func window(atTitlebar point: GlobalPoint) -> WindowHandle?
 }
 
-/// The window a claimed gesture acts on, and where the pointer was when it started.
+/// Where a dragged window was, and where it was grabbed, when the mouse button went down.
+public struct DragContext: Equatable, Sendable {
+    public let frameAtPress: GlobalRect
+    public let pressPoint: GlobalPoint
+
+    public init(frameAtPress: GlobalRect, pressPoint: GlobalPoint) {
+        self.frameAtPress = frameAtPress
+        self.pressPoint = pressPoint
+    }
+}
+
+/// The window a claimed gesture acts on, and where the pointer is: where a trackpad gesture
+/// started, or where the pointer is now during a drag.
 public struct GestureContext: Equatable {
     public let window: WindowHandle
     public let pointer: GlobalPoint
+    /// Set for drag + scroll, `nil` for trackpad gestures.
+    public let drag: DragContext?
 
-    public init(window: WindowHandle, pointer: GlobalPoint) {
+    public init(window: WindowHandle, pointer: GlobalPoint, drag: DragContext? = nil) {
         self.window = window
         self.pointer = pointer
+        self.drag = drag
     }
 }
 
@@ -66,6 +81,9 @@ public final class GestureRecognizer {
             return handleMomentum(phase: phase)
         case let .magnify(phase, magnification, location):
             return handleMagnify(phase: phase, magnification: magnification, location: location)
+        case .mouseDown, .mouseDragged, .mouseUp, .dragScroll:
+            // Drag + scroll belongs to DragScrollRecognizer.
+            return .passThrough
         }
     }
 
