@@ -109,7 +109,7 @@ public final class DragScrollRecognizer {
     }
 
     private func claim(press: GlobalPoint, pointer: GlobalPoint) -> GestureContext? {
-        guard !isPaused, settings().scrollWhileDragging,
+        guard !isPaused, settings().scrollButton.includesLeft,
             let window = probe.window(atTitlebar: pointer),
             let current = windows.frame(of: window)
         else { return nil }
