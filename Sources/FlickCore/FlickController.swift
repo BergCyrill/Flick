@@ -75,7 +75,9 @@ public final class FlickController {
                 let next = frame(for: target, context: context),
                 windows.setFrame(next, of: window)
             else { return }
-            history.record(current, for: window)
+            // Read back where the window actually ended up: apps may adjust the requested frame.
+            let placed = windows.frame(of: window) ?? next
+            history.recordMove(from: current, to: placed, for: window)
         case .restore:
             guard let previous = history.take(for: window) else { return }
             _ = windows.setFrame(previous, of: window)

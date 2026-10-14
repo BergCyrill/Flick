@@ -24,7 +24,7 @@ to the two gestures used most:
 1. **Swipe to snap:** a two-finger swipe that starts on a window's titlebar snaps that window
    into a slot on a 2×2 grid.
 2. **Pinch to fill / restore:** pinching out on a titlebar fills the screen (like
-   macOS `fn ⌃ F`), and pinching in restores the frame the window had before Flick last moved it.
+   macOS `fn ⌃ F`), and pinching in restores the frame the window had before the first snap of a run.
 
 Success means: build and install Flick locally, grant Accessibility access once, and both
 gestures work reliably in Finder, Safari, Terminal and VS Code on the built-in trackpad and a
@@ -48,8 +48,10 @@ Magic Trackpad.
   | ↘         | bottom-right quarter|
 
 - Pinch out on the titlebar → **fill** (visible frame minus gaps).
-- Pinch in on the titlebar → **restore** the window's frame from before Flick's last move. Does
-  nothing if Flick has no recorded frame for that window.
+- Pinch in on the titlebar → **restore** the window's frame from before the first snap of a run.
+  A run is a series of snaps while the window stays where Flick put it (within 2 pt); moving or
+  resizing it by hand, or restoring, ends the run. Does nothing if Flick has no recorded frame
+  for that window.
 - **Live preview overlay:** while the gesture is in progress, a translucent rounded rectangle
   shows the target frame. The window moves when the fingers lift. Swiping back to the starting
   point before lifting (below the distance threshold) cancels.
@@ -124,14 +126,16 @@ Everything with logic in it. All of it is deterministic and unit-tested.
      with a non-nil target, or `.cancel` on `cancelled` or when the final target is `nil`.
   - Finger direction is normalised: when the event says the scroll direction is inverted
     (natural scrolling), deltas are negated so that "fingers move up-left" always means ↖.
-- **`FrameHistory`:** remembers, per `WindowHandle`, the frame the window had before Flick last
-  moved it: `record(_:for:)`, `take(for:)`.
+- **`FrameHistory`:** remembers, per `WindowHandle`, the frame to restore (`original`) and where
+  Flick last placed the window (`placed`): `recordMove(from:to:for:)` keeps `original` while the
+  current frame is within 2 pt of `placed`, otherwise starts a new run; `peek(for:)`, `take(for:)`.
 - **`FlickController`:** connects the recogniser's updates to the effects, through protocols:
   `WindowAccess` (read / set a `WindowHandle`'s frame), `ScreenProvider` (visible frame of the
   screen containing a point), `PreviewPresenter` (show rect / hide).
   - On preview: it computes the target rect (`LayoutEngine` for a slot, `FrameHistory` peek for
     restore) and shows it.
-  - On commit of a slot: it records the current frame in `FrameHistory` and sets the new one.
+  - On commit of a slot: it sets the new frame, reads back where the window actually ended up
+    (apps may adjust it, e.g. Terminal's character grid) and calls `FrameHistory.recordMove`.
   - On commit of restore: it takes the stored frame and sets it. Nothing happens if there is
     none.
   - On cancel: it hides the preview.
@@ -166,8 +170,8 @@ Thin wrappers, kept small enough to check by reading and by hand.
 
 `CGEvent` → `EventTap` → `InputEvent` → `GestureRecognizer` (asks `TitlebarHitTester`, gets a
 `WindowHandle`) → `.preview(.slot(s))` → `FlickController` → `LayoutEngine` → `PreviewOverlay` …
-fingers lift → `.commit(.slot(s))` → `FlickController` → `FrameHistory.record` →
-`WindowMover` sets the frame → overlay hides.
+fingers lift → `.commit(.slot(s))` → `FlickController` → `WindowMover` sets the frame →
+`FrameHistory.recordMove` → overlay hides.
 
 ## Error handling
 
