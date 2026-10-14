@@ -1,7 +1,7 @@
 # Flick settings window and drag + scroll — design
 
 - **Date:** 2026-10-14
-- **Status:** approved design, pending spec review
+- **Status:** approved
 - **Builds on:** [Flick v1 design](2026-10-14-flick-v1-design.md)
 - **Design drawing:** [Flick design canvas](https://claude.ai/artifact/8NszVx1Eqce2uHPLTWRneV)
   (boards *Settings window* and *Drag + scroll*)
@@ -91,17 +91,20 @@ The existing session event tap also listens to `leftMouseDown`, `leftMouseDragge
   1. `TitlebarProbe.window(atTitlebar:)` at the current pointer location. While a window is
      dragged its titlebar stays under the pointer.
   2. `WindowAccess.frame(of:)` gives the current frame. The frame at press time is that frame
-     shifted back by the pointer movement since the press.
-  3. The press point must lie inside `TitlebarZone` of the frame at press time. This rules out
-     text selections, drags inside a window body and similar.
-  - If any step fails, the drag is **not claimed**: its scrolls all pass through, with no retry
-    until the next press.
+     shifted back by the pointer movement since the press (a dragged window moves with the
+     pointer). Restore under the pointer and the restore history use it.
+  - If either step fails, the drag is **not claimed**: its scrolls all pass through, with no
+    retry until the next press.
+  - **Accepted limitation:** Flick doesn't check that the window actually moved with the
+    pointer. Holding the button for some other drag (a text selection, say), ending up over a
+    titlebar and scrolling there counts as drag + scroll. Telling them apart would need an
+    Accessibility lookup after every click.
 - **Claimed drag:** every scroll event until release is swallowed, including the first one.
   Momentum scrolling (after a trackpad flick) is ignored and passes through.
 - **Release** commits the current target, or cancels if there is none.
 
-"Button held" is decided by the adapter from `NSEvent.pressedMouseButtons` when it translates a
-scroll event, so a lost mouse-up can't leave Flick thinking the button is still down.
+"Button held" is decided by the adapter from `CGEventSource.buttonState(.combinedSessionState,
+button: .left)` when it translates a scroll event, so a lost mouse-up can't leave Flick thinking the button is still down.
 
 Rejected: Accessibility "window moved" notifications (late and app-dependent, so not good enough
 for a live preview); resizing the window during the drag (the system keeps moving the window
@@ -130,7 +133,8 @@ Additions and changes on top of the v1 architecture. Everything with logic stays
 - **`FlickSettings`** (new): value type with `swipeToSnap`, `pinchToFillRestore`,
   `scrollWhileDragging`, `livePreview`, all `Bool`, all `true` by default. No persistence.
 - **`InputEvent`** (extended) with:
-  - `.mouseDown(GlobalPoint)`, `.mouseDragged(GlobalPoint)`, `.mouseUp(GlobalPoint)`
+  - `.mouseDown(location:)`, `.mouseDragged(location:)`, `.mouseUp(location:)`, each with a
+    `GlobalPoint`
   - `.dragScroll(deltaY: Double, precise: Bool, invertedFromDevice: Bool, location: GlobalPoint)`:
     a scroll event while the left button is held, momentum excluded.
   - The existing cases stay as they are.
@@ -152,8 +156,8 @@ Additions and changes on top of the v1 architecture. Everything with logic stays
 - **`GestureRecognizer`** (changed): takes a `settings: () -> FlickSettings` closure; a swipe
   `began` is claimed only if `swipeToSnap`, a pinch `began` only if `pinchToFillRestore`.
 - **`DragRestore`** (new): pure function
-  `frame(width: Double, height: Double, drag: DragContext, pointer: GlobalPoint, visible: GlobalRect) -> GlobalRect`
-  implementing restore under the pointer (grab fraction kept, top offset kept and capped to the
+  `frame(restoring original: GlobalRect, drag: DragContext, pointer: GlobalPoint, visible: GlobalRect) -> GlobalRect`
+  (only the size of `original` is used) implementing restore under the pointer (grab fraction kept, top offset kept and capped to the
   new height, then shifted inside `visible`; a window larger than `visible` aligns to its
   top-left). Results are rounded to whole points.
 - **`FlickController`** (changed):
@@ -169,13 +173,14 @@ Additions and changes on top of the v1 architecture. Everything with logic stays
 
 - **`EventTap`** (changed): mask adds `leftMouseDown`, `leftMouseDragged`, `leftMouseUp`. Mouse
   events always return the event. The translator emits `.dragScroll` for a non-momentum scroll
-  (precise or not) while `NSEvent.pressedMouseButtons` has the left button; otherwise it behaves
+  (precise or not) while `CGEventSource.buttonState` reports the left button down; otherwise it behaves
   as before. Hands everything to `InputRouter`.
 - **`PreviewOverlay`** (changed): animates only when the size changes; pure moves (following
   the pointer) are immediate.
-- **`SettingsStore`** (new, `@Observable`): reads and writes `FlickSettings` in `UserDefaults`,
-  exposes `current` for the closures above and `isPaused` (not persisted) for the window's
-  note.
+- **`SettingsStore`** (new, `ObservableObject`): holds `settings: FlickSettings` (saved to
+  `UserDefaults` on every change, read by the closures above), `isPaused` (not persisted) for
+  the window's note, and `launchAtLogin` / `loginProblem`, which go through `LoginItem` and are
+  re-read from macOS each time the window opens.
 - **`LoginItem`** (new): wraps `SMAppService.mainApp`: status, enable, disable. On failure the
   switch flips back and the hint shows the reason; `requiresApproval` shows *Requires approval
   in System Settings → Login Items* and offers to open that pane
@@ -216,7 +221,7 @@ frameAtPress, …)` → overlay hides.
 
 - **`FlickCore`** (swift-testing, `swift test`):
   - `DragScrollRecognizer`: press, scroll, release → commit; thresholds for wheel and trackpad;
-    natural and classic scrolling; back to neutral cancels; press outside the titlebar zone not
+    natural and classic scrolling; back to neutral cancels; pointer not on a titlebar → not
     claimed; probe or frame read failing → not claimed and no retry; unclaimed drag swallows
     nothing; momentum not handled; lost mouse-up; `reset()`; disabled setting and pause claim
     nothing; settings read once per drag; preview follows the pointer.
