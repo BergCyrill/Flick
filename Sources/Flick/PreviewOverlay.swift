@@ -30,7 +30,9 @@ final class PreviewOverlay: PreviewPresenter {
 
     func show(_ frame: GlobalRect) {
         let target = frame.flipped(primaryHeight: ScreenAdapter.primaryHeight).nsRect
-        if panel.isVisible {
+        // Animate a change of slot; a preview that only moves (following the pointer during a
+        // drag) jumps, so it doesn't trail behind.
+        if panel.isVisible, panel.frame.size != target.size {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.12
                 panel.animator().setFrame(target, display: true)

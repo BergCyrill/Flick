@@ -34,10 +34,12 @@ final class FakeScreens: ScreenProvider {
 @MainActor
 final class FakePreview: PreviewPresenter {
     private(set) var shown: GlobalRect?
+    private(set) var showCount = 0
     private(set) var hideCount = 0
 
     func show(_ frame: GlobalRect) {
         shown = frame
+        showCount += 1
     }
 
     func hide() {

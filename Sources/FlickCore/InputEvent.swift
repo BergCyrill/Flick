@@ -3,7 +3,7 @@ public enum GesturePhase: Equatable, Sendable {
     case mayBegin, began, changed, ended, cancelled
 }
 
-/// A trackpad event, already translated from CGEvent/NSEvent by the adapter layer.
+/// A trackpad or mouse event, already translated from CGEvent/NSEvent by the adapter layer.
 public enum InputEvent: Equatable, Sendable {
     /// Two-finger scrolling while the fingers are on the trackpad. Deltas are the raw
     /// `NSEvent.scrollingDeltaX/Y` values.
@@ -12,6 +12,14 @@ public enum InputEvent: Equatable, Sendable {
     case momentum(phase: GesturePhase)
     /// Pinch. `magnification` is the delta since the previous event.
     case magnify(phase: GesturePhase, magnification: Double, location: GlobalPoint)
+    /// Left mouse button pressed, moved while pressed, released. Only observed, never swallowed.
+    case mouseDown(location: GlobalPoint)
+    case mouseDragged(location: GlobalPoint)
+    case mouseUp(location: GlobalPoint)
+    /// A scroll while the left mouse button is held, momentum excluded. `deltaY` is the raw
+    /// `NSEvent.scrollingDeltaY`: lines for a mouse wheel (`precise == false`), points for a
+    /// trackpad.
+    case dragScroll(deltaY: Double, precise: Bool, invertedFromDevice: Bool, location: GlobalPoint)
 }
 
 /// What the event tap should do with an event.

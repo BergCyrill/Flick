@@ -58,6 +58,17 @@ A blue preview shows the target while your fingers move. The window moves when y
 Swipe back to where you started to cancel. Gestures that start anywhere else go to the app as
 usual. *Pause gestures* in the menu-bar item turns Flick off without quitting.
 
+With a mouse (or a trackpad, keeping the click held), drag a window by its titlebar and scroll
+while still holding the button:
+
+| While dragging | Result |
+|---|---|
+| scroll away from you | fill the screen under the pointer |
+| scroll towards you | restore the size from before the first snap, under the pointer |
+
+The preview follows the pointer; the window changes when you release the button. Scroll back to
+cancel.
+
 *Settings…* (⌘,) in the menu-bar item turns each gesture and the live preview on or off and
 starts Flick at login. A gesture that is off swallows nothing: its scrolls and pinches reach the
 app. Changes apply from the next gesture.
@@ -84,3 +95,11 @@ available, a Magic Trackpad:
 - [ ] Settings survive a relaunch (`task run`).
 - [ ] *Pause gestures* while the settings window is open shows the paused note; unpausing hides it.
 - [ ] *Launch at login* on: Flick appears in System Settings → General → Login Items and starts after logging out and in; off removes it. If macOS wants approval, the hint says so and *Open Login Items…* opens the pane.
+- [ ] Mouse wheel: drag a Finder, Safari, Terminal and VS Code window by its titlebar and scroll away: fill preview; release: the window fills and stays filled.
+- [ ] Scroll towards you while dragging a window Flick snapped: original-size preview under the pointer that follows it; release: original size where you let go, fully on screen.
+- [ ] Scroll away and back before releasing: no preview, the window stays where you dropped it.
+- [ ] Natural scrolling off: same directions as with it on.
+- [ ] Trackpad: click-hold a titlebar and scroll with two other fingers: same behaviour.
+- [ ] Holding the button in a text area and scrolling (extending a selection) scrolls the app as usual.
+- [ ] Second display: drag a window onto it and scroll away: it fills that display.
+- [ ] With *Scroll while dragging* off in Settings, scrolling during a drag reaches the app.

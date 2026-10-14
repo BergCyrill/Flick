@@ -2,59 +2,79 @@ import AppKit
 import FlickCore
 import os
 
-/// Session event tap for trackpad scroll and gesture events. Hands every event to the
-/// recognizer and drops the ones it claims.
+/// Session event taps: an active one for scroll and trackpad gesture events, and a listen-only one
+/// for left-mouse events (drag + scroll). Hands every event to the router and drops the scroll and
+/// gesture events it claims. Mouse events are only observed, so clicks never wait for Flick.
 @MainActor
 final class EventTap {
     private static let logger = Logger(subsystem: "local.personal.flick", category: "EventTap")
     /// CGEventType raw values for gesture events, which have no named case in the SDK.
     private static let gestureTypes: [UInt32] = [29, 30]
+    private static let mouseTypes: [CGEventType] = [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
 
-    private let recognizer: GestureRecognizer
+    private let router: InputRouter
     private var port: CFMachPort?
-    private var source: CFRunLoopSource?
+    private var mousePort: CFMachPort?
+    private var sources: [CFRunLoopSource] = []
 
-    init(recognizer: GestureRecognizer) {
-        self.recognizer = recognizer
+    init(router: InputRouter) {
+        self.router = router
     }
 
     var isRunning: Bool { port != nil }
 
-    /// Returns `false` if the tap could not be created (usually: no Accessibility access).
+    /// Returns `false` if the taps could not be created (usually: no Accessibility access).
     func start() -> Bool {
         guard port == nil else { return true }
         var mask = CGEventMask(1) << CGEventType.scrollWheel.rawValue
         for type in Self.gestureTypes {
             mask |= CGEventMask(1) << type
         }
-        guard
-            let port = CGEvent.tapCreate(
-                tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
-                eventsOfInterest: mask, callback: eventTapCallback,
-                userInfo: Unmanaged.passUnretained(self).toOpaque())
-        else {
+        var mouseMask: CGEventMask = 0
+        for type in Self.mouseTypes {
+            mouseMask |= CGEventMask(1) << type.rawValue
+        }
+        let port = makeTap(mask, options: .defaultTap)
+        let mousePort = makeTap(mouseMask, options: .listenOnly)
+        guard let port, let mousePort else {
             Self.logger.error("CGEvent.tapCreate failed")
+            // Don't leave one tap enabled without a run loop to serve it.
+            for created in [port, mousePort].compactMap({ $0 }) {
+                CFMachPortInvalidate(created)
+            }
             return false
         }
-        let source = CFMachPortCreateRunLoopSource(nil, port, 0)
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-        CGEvent.tapEnable(tap: port, enable: true)
+        for created in [port, mousePort] {
+            let source = CFMachPortCreateRunLoopSource(nil, created, 0)
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+            CGEvent.tapEnable(tap: created, enable: true)
+            if let source { sources.append(source) }
+        }
         self.port = port
-        self.source = source
+        self.mousePort = mousePort
         return true
+    }
+
+    private func makeTap(_ mask: CGEventMask, options: CGEventTapOptions) -> CFMachPort? {
+        CGEvent.tapCreate(
+            tap: .cgSessionEventTap, place: .headInsertEventTap, options: options,
+            eventsOfInterest: mask, callback: eventTapCallback,
+            userInfo: Unmanaged.passUnretained(self).toOpaque())
     }
 
     /// Returns `true` if the event should be swallowed.
     fileprivate func handle(type: CGEventType, input: InputEvent?) -> Bool {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             Self.logger.warning("Event tap disabled by the system (type \(type.rawValue)), re-enabling")
-            if let port { CGEvent.tapEnable(tap: port, enable: true) }
+            for disabled in [port, mousePort].compactMap({ $0 }) {
+                CGEvent.tapEnable(tap: disabled, enable: true)
+            }
             // Events were lost while disabled; don't wait for an `ended` that may never come.
-            recognizer.reset()
+            router.reset()
             return false
         }
         guard let input else { return false }
-        return recognizer.handle(input) == .swallow
+        return router.handle(input) == .swallow
     }
 }
 
@@ -69,27 +89,45 @@ private let eventTapCallback: CGEventTapCallBack = { _, type, event, userInfo in
 }
 
 /// Converts CGEvents into FlickCore's InputEvent. Returns `nil` for anything Flick ignores
-/// (mouse wheels, other gesture kinds).
+/// (mouse wheels without a held button, other gesture kinds).
 enum EventTranslator {
     static func input(from cgEvent: CGEvent) -> InputEvent? {
         guard let event = NSEvent(cgEvent: cgEvent) else { return nil }
         let location = GlobalPoint(x: cgEvent.location.x, y: cgEvent.location.y)
         switch event.type {
+        case .leftMouseDown:
+            return .mouseDown(location: location)
+        case .leftMouseDragged:
+            return .mouseDragged(location: location)
+        case .leftMouseUp:
+            return .mouseUp(location: location)
         case .scrollWheel:
-            guard event.hasPreciseScrollingDeltas else { return nil }
-            if let momentum = phase(event.momentumPhase) {
-                return .momentum(phase: momentum)
-            }
-            guard let phase = phase(event.phase) else { return nil }
-            return .scroll(
-                phase: phase, deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY,
-                invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
+            return scroll(event, location: location)
         case .magnify:
             guard let phase = phase(event.phase) else { return nil }
             return .magnify(phase: phase, magnification: event.magnification, location: location)
         default:
             return nil
         }
+    }
+
+    private static func scroll(_ event: NSEvent, location: GlobalPoint) -> InputEvent? {
+        let momentum = phase(event.momentumPhase)
+        // Left button held: a candidate for drag + scroll, mouse wheel and trackpad alike. Asking
+        // the event source (not our own mouse-down tracking) means a lost mouse-up can't fool it.
+        if momentum == nil, CGEventSource.buttonState(.combinedSessionState, button: .left) {
+            return .dragScroll(
+                deltaY: event.scrollingDeltaY, precise: event.hasPreciseScrollingDeltas,
+                invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
+        }
+        guard event.hasPreciseScrollingDeltas else { return nil }
+        if let momentum {
+            return .momentum(phase: momentum)
+        }
+        guard let phase = phase(event.phase) else { return nil }
+        return .scroll(
+            phase: phase, deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY,
+            invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
     }
 
     private static func phase(_ phase: NSEvent.Phase) -> GesturePhase? {
