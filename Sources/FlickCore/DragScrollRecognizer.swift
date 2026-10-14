@@ -2,11 +2,6 @@
 /// restore updates, committed on release. Mouse events are only observed, never swallowed.
 @MainActor
 public final class DragScrollRecognizer {
-    /// Scroll away from or towards you needed before there is a target. Mouse wheels report
-    /// lines, trackpads report points.
-    public static let wheelThreshold: Double = 1
-    public static let preciseThreshold: Double = 20
-
     /// While paused, new drags are not claimed. A drag already claimed finishes.
     public var isPaused = false
 
@@ -123,19 +118,8 @@ public final class DragScrollRecognizer {
 
     private func accumulate(deltaY: Double, precise: Bool, inverted: Bool) {
         guard case let .claimed(context, oldAmount, oldTarget) = state else { return }
-        let finger = DirectionClassifier.fingerDelta(
-            scrollingDeltaX: 0, scrollingDeltaY: deltaY, invertedFromDevice: inverted)
-        // Fingers or wheel moving away from you is "up", a negative dy.
-        let amount = oldAmount - finger.dy
-        let threshold = precise ? Self.preciseThreshold : Self.wheelThreshold
-        let target: Target?
-        if amount >= threshold {
-            target = .slot(.fill)
-        } else if amount <= -threshold {
-            target = .restore
-        } else {
-            target = nil
-        }
+        let amount = oldAmount + ScrollTarget.step(deltaY: deltaY, invertedFromDevice: inverted)
+        let target = ScrollTarget.target(amount: amount, precise: precise)
         state = .claimed(context, amount: amount, target: target)
         if target != oldTarget {
             onUpdate(.preview(context, target))
