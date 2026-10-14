@@ -52,7 +52,7 @@ Put the pointer on a window's titlebar (the top 40 pt, toolbars included), then:
 | swipe ↑ / ↓ | top / bottom half |
 | swipe ↖ ↗ ↙ ↘ | matching quarter |
 | pinch out | fill the screen (8 pt margin) |
-| pinch in | restore the frame from before Flick's last move |
+| pinch in | restore the frame from before the first snap |
 
 A blue preview shows the target while your fingers move. The window moves when you lift them.
 Swipe back to where you started to cancel. Gestures that start anywhere else go to the app as
@@ -67,6 +67,7 @@ available, a Magic Trackpad:
 - [ ] The preview appears after a short swipe, follows direction changes, and disappears on lift.
 - [ ] Swiping back to the start before lifting leaves the window where it was.
 - [ ] Pinch out fills; pinch in afterwards restores the previous frame; a second pinch in does nothing.
+- [ ] Snap ←, then →, then pinch out, then pinch in: the window returns to its size and position from before the first snap.
 - [ ] Scrolling inside a window, a Safari tab strip below the titlebar zone, and the desktop behaves normally.
 - [ ] Pinch-to-zoom inside Safari and Preview still zooms.
 - [ ] In a fullscreen app (e.g. Safari or Terminal), scrolling and pinch-zooming near the top edge behave normally and Flick shows no preview.

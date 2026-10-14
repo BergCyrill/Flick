@@ -6,6 +6,8 @@ import Testing
 final class FakeWindows: WindowAccess {
     var frames: [WindowHandle: GlobalRect] = [:]
     var refuseMoves = false
+    /// Imitates apps that adjust the requested frame, e.g. Terminal rounding to its character grid.
+    var adjust: (GlobalRect) -> GlobalRect = { $0 }
     private(set) var setCalls: [GlobalRect] = []
 
     func frame(of window: WindowHandle) -> GlobalRect? {
@@ -15,7 +17,7 @@ final class FakeWindows: WindowAccess {
     func setFrame(_ frame: GlobalRect, of window: WindowHandle) -> Bool {
         setCalls.append(frame)
         guard !refuseMoves, frames[window] != nil else { return false }
-        frames[window] = frame
+        frames[window] = adjust(frame)
         return true
     }
 }
@@ -45,19 +47,46 @@ final class FakePreview: PreviewPresenter {
 }
 
 @Suite struct FrameHistoryTests {
-    @Test func takeReturnsTheRecordedFrameOnce() {
+    let window = WindowHandle(1)
+    let original = GlobalRect(x: 300, y: 200, width: 640, height: 480)
+    let left = GlobalRect(x: 8, y: 33, width: 708, height: 859)
+    let right = GlobalRect(x: 724, y: 33, width: 708, height: 859)
+
+    @Test func takeReturnsTheOriginalFrameOnce() {
         var history = FrameHistory()
-        let window = WindowHandle(1)
-        history.record(GlobalRect(x: 1, y: 2, width: 3, height: 4), for: window)
-        #expect(history.peek(for: window) == GlobalRect(x: 1, y: 2, width: 3, height: 4))
-        #expect(history.take(for: window) == GlobalRect(x: 1, y: 2, width: 3, height: 4))
+        history.recordMove(from: original, to: left, for: window)
+        #expect(history.peek(for: window) == original)
+        #expect(history.take(for: window) == original)
         #expect(history.take(for: window) == nil)
     }
 
     @Test func windowsAreTrackedSeparately() {
         var history = FrameHistory()
-        history.record(GlobalRect(x: 1, y: 1, width: 1, height: 1), for: WindowHandle(1))
+        history.recordMove(from: original, to: left, for: window)
         #expect(history.peek(for: WindowHandle(2)) == nil)
+    }
+
+    @Test func movingOnFromWhereFlickPlacedItKeepsTheOriginal() {
+        var history = FrameHistory()
+        history.recordMove(from: original, to: left, for: window)
+        history.recordMove(from: left, to: right, for: window)
+        #expect(history.peek(for: window) == original)
+    }
+
+    @Test func driftWithinTwoPointsStillCountsAsPlaced() {
+        var history = FrameHistory()
+        history.recordMove(from: original, to: left, for: window)
+        let drifted = GlobalRect(x: left.x + 2, y: left.y - 1, width: left.width, height: left.height)
+        history.recordMove(from: drifted, to: right, for: window)
+        #expect(history.peek(for: window) == original)
+    }
+
+    @Test func largerDriftStartsANewRun() {
+        var history = FrameHistory()
+        history.recordMove(from: original, to: left, for: window)
+        let moved = GlobalRect(x: left.x + 3, y: left.y, width: left.width, height: left.height)
+        history.recordMove(from: moved, to: right, for: window)
+        #expect(history.peek(for: window) == moved)
     }
 }
 
@@ -153,5 +182,46 @@ final class FakePreview: PreviewPresenter {
         controller.handle(.preview(context, .slot(.leftHalf)))
         controller.handle(.cancel)
         #expect(preview.shown == nil)
+    }
+
+    @Test func repeatedSnapsRestoreToTheFrameBeforeTheFirstSnap() {
+        let controller = makeController()
+        controller.handle(.commit(context, .slot(.leftHalf)))
+        controller.handle(.commit(context, .slot(.rightHalf)))
+        controller.handle(.commit(context, .slot(.fill)))
+        controller.handle(.commit(context, .restore))
+        #expect(windows.frames[window] == original)
+    }
+
+    @Test func movingTheWindowByHandStartsANewRun() {
+        let controller = makeController()
+        let byHand = GlobalRect(x: 500, y: 300, width: 400, height: 300)
+        controller.handle(.commit(context, .slot(.leftHalf)))
+        windows.frames[window] = byHand
+        controller.handle(.commit(context, .slot(.rightHalf)))
+        controller.handle(.commit(context, .restore))
+        #expect(windows.frames[window] == byHand)
+    }
+
+    @Test func appAdjustedFrameStillCountsAsUntouched() {
+        let controller = makeController()
+        // Like Terminal: widths snap down to a 7 pt character grid.
+        windows.adjust = { GlobalRect(x: $0.x, y: $0.y, width: ($0.width / 7).rounded(.down) * 7, height: $0.height) }
+        controller.handle(.commit(context, .slot(.leftHalf)))
+        controller.handle(.commit(context, .slot(.rightHalf)))
+        controller.handle(.commit(context, .restore))
+        // The restore itself is snapped to the grid again, so check what Flick asked for.
+        #expect(windows.setCalls.last == original)
+    }
+
+    @Test func snappingAfterARestoreRecordsAFreshOriginal() {
+        let controller = makeController()
+        let byHand = GlobalRect(x: 500, y: 300, width: 400, height: 300)
+        controller.handle(.commit(context, .slot(.leftHalf)))
+        controller.handle(.commit(context, .restore))
+        windows.frames[window] = byHand
+        controller.handle(.commit(context, .slot(.fill)))
+        controller.handle(.commit(context, .restore))
+        #expect(windows.frames[window] == byHand)
     }
 }
