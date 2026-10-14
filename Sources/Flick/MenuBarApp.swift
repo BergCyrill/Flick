@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import FlickCore
 
 /// Menu-bar item, Accessibility handling and wiring of the whole app.
@@ -20,6 +21,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var trustTimer: Timer?
     private let store = SettingsStore()
     private lazy var settingsWindow = SettingsWindow(store: store)
+    private var subscriptions: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), Self.accessibilityTimeout)
@@ -39,6 +41,12 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             holdScroll: HoldScrollRecognizer(probe: probe, settings: { store.settings }, onUpdate: onUpdate))
         self.router = router
         tap = EventTap(router: router)
+        // Right-clicks only pass through Flick while the setting uses the right button.
+        store.$settings
+            .map(\.scrollButton.includesRight)
+            .removeDuplicates()
+            .sink { [weak self] enabled in self?.tap?.isRightButtonEnabled = enabled }
+            .store(in: &subscriptions)
         buildMenu()
 
         if Accessibility.isTrusted(prompt: true) {
