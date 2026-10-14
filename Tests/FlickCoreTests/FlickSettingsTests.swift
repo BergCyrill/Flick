@@ -12,11 +12,11 @@ import Testing
         body(defaults)
     }
 
-    @Test func everythingIsOnByDefault() {
+    @Test func gesturesAreOnByDefaultWithTheLeftButton() {
         let settings = FlickSettings()
         #expect(settings.swipeToSnap)
         #expect(settings.pinchToFillRestore)
-        #expect(settings.scrollWhileDragging)
+        #expect(settings.scrollButton == .left)
         #expect(settings.livePreview)
     }
 
@@ -30,6 +30,7 @@ import Testing
         withDefaults { defaults in
             var settings = FlickSettings()
             settings.pinchToFillRestore = false
+            settings.scrollButton = .both
             settings.livePreview = false
             settings.save(to: defaults)
             #expect(FlickSettings(defaults: defaults) == settings)
@@ -39,10 +40,53 @@ import Testing
     @Test func eachSwitchIsStoredUnderItsOwnKey() {
         withDefaults { defaults in
             var settings = FlickSettings()
-            settings.scrollWhileDragging = false
+            settings.livePreview = false
             settings.save(to: defaults)
-            #expect(defaults.object(forKey: "scrollWhileDragging") as? Bool == false)
+            #expect(defaults.object(forKey: "livePreview") as? Bool == false)
             #expect(defaults.object(forKey: "swipeToSnap") as? Bool == true)
         }
+    }
+
+    @Test func theScrollButtonIsStoredByName() {
+        withDefaults { defaults in
+            var settings = FlickSettings()
+            settings.scrollButton = .right
+            settings.save(to: defaults)
+            #expect(defaults.string(forKey: "scrollButton") == "right")
+        }
+    }
+
+    @Test func theOldSwitchOnBecomesTheLeftButton() {
+        withDefaults { defaults in
+            defaults.set(true, forKey: "scrollWhileDragging")
+            #expect(FlickSettings(defaults: defaults).scrollButton == .left)
+        }
+    }
+
+    @Test func theOldSwitchOffBecomesOff() {
+        withDefaults { defaults in
+            defaults.set(false, forKey: "scrollWhileDragging")
+            #expect(FlickSettings(defaults: defaults).scrollButton == .off)
+        }
+    }
+
+    @Test func theScrollButtonWinsOverTheOldSwitch() {
+        withDefaults { defaults in
+            defaults.set(false, forKey: "scrollWhileDragging")
+            defaults.set("right", forKey: "scrollButton")
+            #expect(FlickSettings(defaults: defaults).scrollButton == .right)
+        }
+    }
+
+    @Test func anUnknownScrollButtonKeepsTheDefault() {
+        withDefaults { defaults in
+            defaults.set("middle", forKey: "scrollButton")
+            #expect(FlickSettings(defaults: defaults).scrollButton == .left)
+        }
+    }
+
+    @Test func eachChoiceIncludesItsButtons() {
+        #expect(ScrollButton.allCases.map(\.includesLeft) == [false, true, false, true])
+        #expect(ScrollButton.allCases.map(\.includesRight) == [false, false, true, true])
     }
 }

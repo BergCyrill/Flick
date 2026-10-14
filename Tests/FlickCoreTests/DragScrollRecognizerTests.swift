@@ -124,15 +124,30 @@ import Testing
         #expect(probe.probedPoints.isEmpty)
     }
 
-    @Test func offInSettingsClaimsNothing() {
+    @Test func offClaimsNothing() {
+        claimsNothing(with: .off)
+    }
+
+    @Test func rightOnlyClaimsNothing() {
+        claimsNothing(with: .right)
+    }
+
+    func claimsNothing(with button: ScrollButton) {
         var settings = FlickSettings()
-        settings.scrollWhileDragging = false
+        settings.scrollButton = button
         let probe = FakeProbe(window: window)
         let result = run(
             [.mouseDown(location: press), wheel(1), .mouseUp(location: pointer)], probe: probe, settings: settings)
         #expect(result.decisions == [.passThrough, .passThrough, .passThrough])
         #expect(result.updates.isEmpty)
         #expect(probe.probedPoints.isEmpty)
+    }
+
+    @Test func bothClaimsTheDrag() {
+        var settings = FlickSettings()
+        settings.scrollButton = .both
+        let result = run([.mouseDown(location: press), wheel(1), .mouseUp(location: pointer)], settings: settings)
+        #expect(result.updates == [.preview(context, .slot(.fill)), .commit(context, .slot(.fill))])
     }
 
     @Test func pausedClaimsNothing() {

@@ -5,7 +5,7 @@ import Foundation
 public struct FlickSettings: Equatable, Sendable {
     public var swipeToSnap = true
     public var pinchToFillRestore = true
-    public var scrollWhileDragging = true
+    public var scrollButton = ScrollButton.left
     public var livePreview = true
 
     public init() {}
@@ -17,19 +17,29 @@ public struct FlickSettings: Equatable, Sendable {
                 self[keyPath: path] = value
             }
         }
+        if let name = defaults.string(forKey: Self.scrollButtonKey), let button = ScrollButton(rawValue: name) {
+            scrollButton = button
+        } else if let wasOn = defaults.object(forKey: Self.oldScrollKey) as? Bool {
+            // Carried over from the switch the picker replaced.
+            scrollButton = wasOn ? .left : .off
+        }
     }
 
     public func save(to defaults: UserDefaults) {
         for (key, path) in Self.keys {
             defaults.set(self[keyPath: path], forKey: key)
         }
+        defaults.set(scrollButton.rawValue, forKey: Self.scrollButtonKey)
     }
+
+    private static let scrollButtonKey = "scrollButton"
+    /// The switch that came before the picker: read once to carry its value over, never written.
+    private static let oldScrollKey = "scrollWhileDragging"
 
     private static var keys: [(String, WritableKeyPath<FlickSettings, Bool>)] {
         [
             ("swipeToSnap", \.swipeToSnap),
             ("pinchToFillRestore", \.pinchToFillRestore),
-            ("scrollWhileDragging", \.scrollWhileDragging),
             ("livePreview", \.livePreview),
         ]
     }

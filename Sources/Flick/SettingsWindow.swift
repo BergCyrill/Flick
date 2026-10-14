@@ -1,4 +1,5 @@
 import AppKit
+import FlickCore
 import SwiftUI
 
 /// The settings window from the design drawing. Created on first use and reused.
@@ -52,10 +53,12 @@ struct SettingsView: View {
                     Self.label(
                         "Pinch on titlebar to fill and restore", hint: "Pinch out fills the screen, pinch in restores.")
                 }
-                Toggle(isOn: $store.settings.scrollWhileDragging) {
-                    Self.label(
-                        "Scroll while dragging to fill and restore",
-                        hint: "Drag a window by its titlebar, scroll away to fill, towards you to restore.")
+                Picker(selection: $store.settings.scrollButton) {
+                    ForEach(ScrollButton.allCases, id: \.self) { button in
+                        Text(button.title).tag(button)
+                    }
+                } label: {
+                    Self.label("Scroll to fill and restore", hint: store.settings.scrollButton.hint)
                 }
             }
             Section("Feedback") {
@@ -93,6 +96,29 @@ struct SettingsView: View {
             Text(hint)
                 .font(.caption)
                 .foregroundStyle(isProblem ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
+        }
+    }
+}
+
+/// Picker copy from the design drawing (board *Settings window*).
+private extension ScrollButton {
+    var title: String {
+        switch self {
+        case .off: "Off"
+        case .left: "Left button"
+        case .right: "Right button"
+        case .both: "Both"
+        }
+    }
+
+    var hint: String {
+        switch self {
+        case .off: "Scrolling while a button is held always reaches the app."
+        case .left: "Drag a window by its titlebar, scroll away to fill, towards you to restore."
+        case .right:
+            "Hold the right button on a titlebar, scroll away to fill, towards you to restore. "
+                + "Right-click menus on titlebars open on release."
+        case .both: "Either button works."
         }
     }
 }
