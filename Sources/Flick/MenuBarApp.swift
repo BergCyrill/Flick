@@ -18,15 +18,21 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private var recognizer: GestureRecognizer?
     private var tap: EventTap?
     private var trustTimer: Timer?
+    private let store = SettingsStore()
+    private lazy var settingsWindow = SettingsWindow(store: store)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), Self.accessibilityTimeout)
-        let controller = FlickController(windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay())
+        let store = self.store
+        let controller = FlickController(
+            windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay(), settings: { store.settings })
         // Updates are handled after the tap callback returns: moving a window takes several
         // Accessibility round-trips, and the swallow decision doesn't depend on them.
-        let recognizer = GestureRecognizer(probe: TitlebarHitTester()) { update in
-            DispatchQueue.main.async { controller.handle(update) }
-        }
+        let recognizer = GestureRecognizer(
+            probe: TitlebarHitTester(), settings: { store.settings },
+            onUpdate: { update in
+                DispatchQueue.main.async { controller.handle(update) }
+            })
         self.recognizer = recognizer
         tap = EventTap(recognizer: recognizer)
         buildMenu()
@@ -53,6 +59,9 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         pauseItem.target = self
         pauseItem.action = #selector(togglePause)
         menu.addItem(pauseItem)
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
         menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(title: "Quit Flick", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -102,7 +111,12 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
 
     @objc private func togglePause() {
         recognizer?.isPaused.toggle()
+        store.isPaused = recognizer?.isPaused ?? false
         refreshMenu()
+    }
+
+    @objc private func openSettings() {
+        settingsWindow.show()
     }
 
     @objc private func openAccessibilitySettings() {
