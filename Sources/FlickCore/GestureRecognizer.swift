@@ -41,11 +41,18 @@ public final class GestureRecognizer {
     }
 
     private let probe: TitlebarProbe
+    private let settings: @MainActor () -> FlickSettings
     private let onUpdate: (GestureUpdate) -> Void
     private var state: State = .idle
 
-    public init(probe: TitlebarProbe, onUpdate: @escaping (GestureUpdate) -> Void) {
+    /// - Parameter settings: read once when a gesture begins.
+    public init(
+        probe: TitlebarProbe,
+        settings: @escaping @MainActor () -> FlickSettings = { FlickSettings() },
+        onUpdate: @escaping (GestureUpdate) -> Void
+    ) {
         self.probe = probe
+        self.settings = settings
         self.onUpdate = onUpdate
     }
 
@@ -74,7 +81,7 @@ public final class GestureRecognizer {
             return .passThrough
         case (_, .began):
             cancelGestureInProgress()
-            guard let context = claim(at: location) else {
+            guard let context = claim(at: location, enabled: settings().swipeToSnap) else {
                 state = .idle
                 return .passThrough
             }
@@ -121,7 +128,7 @@ public final class GestureRecognizer {
             return .passThrough
         case (_, .began):
             cancelGestureInProgress()
-            guard let context = claim(at: location) else {
+            guard let context = claim(at: location, enabled: settings().pinchToFillRestore) else {
                 state = .idle
                 return .passThrough
             }
@@ -160,8 +167,10 @@ public final class GestureRecognizer {
         return .swallow
     }
 
-    private func claim(at location: GlobalPoint) -> GestureContext? {
-        guard !isPaused, let window = probe.window(atTitlebar: location) else { return nil }
+    /// A gesture that is switched off in the settings, or paused, is never claimed: the probe
+    /// isn't even asked, and all of its events pass through.
+    private func claim(at location: GlobalPoint, enabled: Bool) -> GestureContext? {
+        guard !isPaused, enabled, let window = probe.window(atTitlebar: location) else { return nil }
         return GestureContext(window: window, pointer: location)
     }
 

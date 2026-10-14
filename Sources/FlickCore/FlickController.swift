@@ -27,24 +27,27 @@ public final class FlickController {
     private let screens: ScreenProvider
     private let preview: PreviewPresenter
     private let gap: Double
+    private let settings: @MainActor () -> FlickSettings
     private var history = FrameHistory()
 
     public init(
         windows: WindowAccess,
         screens: ScreenProvider,
         preview: PreviewPresenter,
-        gap: Double = LayoutEngine.defaultGap
+        gap: Double = LayoutEngine.defaultGap,
+        settings: @escaping @MainActor () -> FlickSettings = { FlickSettings() }
     ) {
         self.windows = windows
         self.screens = screens
         self.preview = preview
         self.gap = gap
+        self.settings = settings
     }
 
     public func handle(_ update: GestureUpdate) {
         switch update {
         case let .preview(context, target):
-            if let target, let frame = frame(for: target, context: context) {
+            if settings().livePreview, let target, let frame = frame(for: target, context: context) {
                 preview.show(frame)
             } else {
                 preview.hide()
