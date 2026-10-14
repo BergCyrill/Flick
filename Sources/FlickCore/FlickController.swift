@@ -29,6 +29,8 @@ public final class FlickController {
     private let gap: Double
     private let settings: @MainActor () -> FlickSettings
     private var history = FrameHistory()
+    /// The frame the preview shows right now, so an unchanged preview isn't redrawn.
+    private var shownFrame: GlobalRect?
 
     public init(
         windows: WindowAccess,
@@ -48,16 +50,27 @@ public final class FlickController {
         switch update {
         case let .preview(context, target):
             if settings().livePreview, let target, let frame = frame(for: target, context: context) {
-                preview.show(frame)
+                showPreview(frame)
             } else {
-                preview.hide()
+                hidePreview()
             }
         case let .commit(context, target):
-            preview.hide()
+            hidePreview()
             commit(target, context: context)
         case .cancel:
-            preview.hide()
+            hidePreview()
         }
+    }
+
+    private func showPreview(_ frame: GlobalRect) {
+        guard frame != shownFrame else { return }
+        shownFrame = frame
+        preview.show(frame)
+    }
+
+    private func hidePreview() {
+        shownFrame = nil
+        preview.hide()
     }
 
     private func frame(for target: Target, context: GestureContext) -> GlobalRect? {
@@ -66,7 +79,11 @@ public final class FlickController {
             guard let visible = screens.visibleFrame(containing: context.pointer) else { return nil }
             return LayoutEngine.frame(for: slot, in: visible, gap: gap)
         case .restore:
-            return history.peek(for: context.window)
+            guard let original = history.peek(for: context.window) else { return nil }
+            guard let drag = context.drag else { return original }
+            // During a drag the window comes back at its restore size, under the pointer.
+            guard let visible = screens.visibleFrame(containing: context.pointer) else { return nil }
+            return DragRestore.frame(restoring: original, drag: drag, pointer: context.pointer, visible: visible)
         }
     }
 
@@ -74,16 +91,20 @@ public final class FlickController {
         let window = context.window
         switch target {
         case .slot:
-            guard let current = windows.frame(of: window),
+            guard let actual = windows.frame(of: window),
                 let next = frame(for: target, context: context),
                 windows.setFrame(next, of: window)
             else { return }
+            // A dragged window counts as still being where it was when the button went down, so
+            // dragging a snapped window out and filling it continues the run.
+            let current = context.drag?.frameAtPress ?? actual
             // Read back where the window actually ended up: apps may adjust the requested frame.
             let placed = windows.frame(of: window) ?? next
             history.recordMove(from: current, to: placed, for: window)
         case .restore:
-            guard let previous = history.take(for: window) else { return }
-            _ = windows.setFrame(previous, of: window)
+            guard let next = frame(for: target, context: context) else { return }
+            _ = history.take(for: window)
+            _ = windows.setFrame(next, of: window)
         }
     }
 }
