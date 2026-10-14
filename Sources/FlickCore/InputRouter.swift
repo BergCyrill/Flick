@@ -22,13 +22,14 @@ public final class InputRouter {
         switch event {
         case .mouseDown, .mouseDragged, .mouseUp, .dragScroll:
             return dragScroll.handle(event)
-        case .scroll:
-            // A trackpad scroll without the button held: a drag we track ended unseen.
+        case .scroll(phase: .began, _, _, _, _):
+            // A new trackpad gesture without the button held: a drag we track ended unseen. Other
+            // phases may be a scroll that was in flight when the button went up; its mouse-up follows.
             if dragScroll.isTracking {
                 dragScroll.reset()
             }
             return gestures.handle(event)
-        case .momentum, .magnify:
+        case .scroll, .momentum, .magnify:
             return gestures.handle(event)
         }
     }

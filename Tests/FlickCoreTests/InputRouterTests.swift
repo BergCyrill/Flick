@@ -56,6 +56,18 @@ import Testing
         #expect(updates == [.preview(dragContext, .slot(.fill)), .cancel, .preview(swipeContext, .slot(.leftHalf))])
     }
 
+    @Test func aTrackpadScrollInFlightAtReleaseLeavesTheDragToCommit() {
+        // The button went up before this scroll was translated, so it arrives as a plain scroll
+        // just ahead of the mouse-up.
+        var updates: [GestureUpdate] = []
+        let router = makeRouter { updates.append($0) }
+        let events: [InputEvent] = [
+            .mouseDown(location: press), wheel(1), swipe(.changed, -5), .mouseUp(location: pointer),
+        ]
+        _ = events.map { router.handle($0) }
+        #expect(updates == [.preview(dragContext, .slot(.fill)), .commit(dragContext, .slot(.fill))])
+    }
+
     @Test func resetCancelsATrackedDrag() {
         var updates: [GestureUpdate] = []
         let router = makeRouter { updates.append($0) }
