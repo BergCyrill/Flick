@@ -22,6 +22,9 @@ public final class InputRouter {
         switch event {
         case .mouseDown, .mouseDragged, .mouseUp, .dragScroll:
             return dragScroll.handle(event)
+        case .rightMouseDown, .rightMouseDragged, .rightMouseUp, .holdScroll:
+            // No recognizer for the right button is wired in yet.
+            return .passThrough
         case .scroll(phase: .began, _, _, _, _):
             // A new trackpad gesture without the button held: a drag we track ended unseen. Other
             // phases may be a scroll that was in flight when the button went up; its mouse-up follows.

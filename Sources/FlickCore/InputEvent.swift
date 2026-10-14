@@ -20,10 +20,21 @@ public enum InputEvent: Equatable, Sendable {
     /// `NSEvent.scrollingDeltaY`: lines for a mouse wheel (`precise == false`), points for a
     /// trackpad.
     case dragScroll(deltaY: Double, precise: Bool, invertedFromDevice: Bool, location: GlobalPoint)
+    /// Right mouse button pressed, moved while pressed, released. Swallowed only for a press on a
+    /// titlebar while hold + scroll is on.
+    case rightMouseDown(location: GlobalPoint)
+    case rightMouseDragged(location: GlobalPoint)
+    case rightMouseUp(location: GlobalPoint)
+    /// A scroll while the right (and not the left) mouse button is held, momentum excluded.
+    /// Deltas as for `dragScroll`.
+    case holdScroll(deltaY: Double, precise: Bool, invertedFromDevice: Bool, location: GlobalPoint)
 }
 
 /// What the event tap should do with an event.
 public enum EventDecision: Equatable, Sendable {
     case passThrough
     case swallow
+    /// For a release: swallow it, then post the swallowed press and this release again, in that
+    /// order, so the app gets its click after all.
+    case replayPress
 }

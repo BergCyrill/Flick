@@ -81,8 +81,9 @@ public final class GestureRecognizer {
             return handleMomentum(phase: phase)
         case let .magnify(phase, magnification, location):
             return handleMagnify(phase: phase, magnification: magnification, location: location)
-        case .mouseDown, .mouseDragged, .mouseUp, .dragScroll:
-            // Drag + scroll belongs to DragScrollRecognizer.
+        case .mouseDown, .mouseDragged, .mouseUp, .dragScroll,
+            .rightMouseDown, .rightMouseDragged, .rightMouseUp, .holdScroll:
+            // Drag + scroll and hold + scroll belong to their own recognizers.
             return .passThrough
         }
     }

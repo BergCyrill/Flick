@@ -52,7 +52,7 @@ public final class DragScrollRecognizer {
             release()
         case let .dragScroll(deltaY, precise, inverted, location):
             return scroll(deltaY: deltaY, precise: precise, inverted: inverted, location: location)
-        case .scroll, .momentum, .magnify:
+        case .scroll, .momentum, .magnify, .rightMouseDown, .rightMouseDragged, .rightMouseUp, .holdScroll:
             break
         }
         return .passThrough
