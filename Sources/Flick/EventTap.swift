@@ -2,8 +2,9 @@ import AppKit
 import FlickCore
 import os
 
-/// Session event tap for scroll and trackpad gesture events, plus left-mouse events for drag +
-/// scroll. Hands every event to the router and drops the ones it claims (never mouse events).
+/// Session event taps: an active one for scroll and trackpad gesture events, and a listen-only one
+/// for left-mouse events (drag + scroll). Hands every event to the router and drops the scroll and
+/// gesture events it claims. Mouse events are only observed, so clicks never wait for Flick.
 @MainActor
 final class EventTap {
     private static let logger = Logger(subsystem: "local.personal.flick", category: "EventTap")
@@ -13,7 +14,8 @@ final class EventTap {
 
     private let router: InputRouter
     private var port: CFMachPort?
-    private var source: CFRunLoopSource?
+    private var mousePort: CFMachPort?
+    private var sources: [CFRunLoopSource] = []
 
     init(router: InputRouter) {
         self.router = router
@@ -21,38 +23,52 @@ final class EventTap {
 
     var isRunning: Bool { port != nil }
 
-    /// Returns `false` if the tap could not be created (usually: no Accessibility access).
+    /// Returns `false` if the taps could not be created (usually: no Accessibility access).
     func start() -> Bool {
         guard port == nil else { return true }
         var mask = CGEventMask(1) << CGEventType.scrollWheel.rawValue
         for type in Self.gestureTypes {
             mask |= CGEventMask(1) << type
         }
+        var mouseMask: CGEventMask = 0
         for type in Self.mouseTypes {
-            mask |= CGEventMask(1) << type.rawValue
+            mouseMask |= CGEventMask(1) << type.rawValue
         }
-        guard
-            let port = CGEvent.tapCreate(
-                tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
-                eventsOfInterest: mask, callback: eventTapCallback,
-                userInfo: Unmanaged.passUnretained(self).toOpaque())
-        else {
+        let port = makeTap(mask, options: .defaultTap)
+        let mousePort = makeTap(mouseMask, options: .listenOnly)
+        guard let port, let mousePort else {
             Self.logger.error("CGEvent.tapCreate failed")
+            // Don't leave one tap enabled without a run loop to serve it.
+            for created in [port, mousePort].compactMap({ $0 }) {
+                CFMachPortInvalidate(created)
+            }
             return false
         }
-        let source = CFMachPortCreateRunLoopSource(nil, port, 0)
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-        CGEvent.tapEnable(tap: port, enable: true)
+        for created in [port, mousePort] {
+            let source = CFMachPortCreateRunLoopSource(nil, created, 0)
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+            CGEvent.tapEnable(tap: created, enable: true)
+            if let source { sources.append(source) }
+        }
         self.port = port
-        self.source = source
+        self.mousePort = mousePort
         return true
+    }
+
+    private func makeTap(_ mask: CGEventMask, options: CGEventTapOptions) -> CFMachPort? {
+        CGEvent.tapCreate(
+            tap: .cgSessionEventTap, place: .headInsertEventTap, options: options,
+            eventsOfInterest: mask, callback: eventTapCallback,
+            userInfo: Unmanaged.passUnretained(self).toOpaque())
     }
 
     /// Returns `true` if the event should be swallowed.
     fileprivate func handle(type: CGEventType, input: InputEvent?) -> Bool {
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             Self.logger.warning("Event tap disabled by the system (type \(type.rawValue)), re-enabling")
-            if let port { CGEvent.tapEnable(tap: port, enable: true) }
+            for disabled in [port, mousePort].compactMap({ $0 }) {
+                CGEvent.tapEnable(tap: disabled, enable: true)
+            }
             // Events were lost while disabled; don't wait for an `ended` that may never come.
             router.reset()
             return false
