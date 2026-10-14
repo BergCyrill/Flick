@@ -35,7 +35,8 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         let router = InputRouter(
             gestures: GestureRecognizer(probe: probe, settings: { store.settings }, onUpdate: onUpdate),
             dragScroll: DragScrollRecognizer(
-                probe: probe, windows: WindowMover(), settings: { store.settings }, onUpdate: onUpdate))
+                probe: probe, windows: WindowMover(), settings: { store.settings }, onUpdate: onUpdate),
+            holdScroll: HoldScrollRecognizer(probe: probe, settings: { store.settings }, onUpdate: onUpdate))
         self.router = router
         tap = EventTap(router: router)
         buildMenu()
