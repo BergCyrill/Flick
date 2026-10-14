@@ -52,6 +52,11 @@ struct SettingsView: View {
                     Self.label(
                         "Pinch on titlebar to fill and restore", hint: "Pinch out fills the screen, pinch in restores.")
                 }
+                Toggle(isOn: $store.settings.scrollWhileDragging) {
+                    Self.label(
+                        "Scroll while dragging to fill and restore",
+                        hint: "Drag a window by its titlebar, scroll away to fill, towards you to restore.")
+                }
             }
             Section("Feedback") {
                 Toggle(isOn: $store.settings.livePreview) {

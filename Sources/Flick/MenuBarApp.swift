@@ -15,7 +15,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private let statusLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let accessLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let pauseItem = NSMenuItem(title: "Pause gestures", action: nil, keyEquivalent: "")
-    private var recognizer: GestureRecognizer?
+    private var router: InputRouter?
     private var tap: EventTap?
     private var trustTimer: Timer?
     private let store = SettingsStore()
@@ -28,13 +28,16 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
             windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay(), settings: { store.settings })
         // Updates are handled after the tap callback returns: moving a window takes several
         // Accessibility round-trips, and the swallow decision doesn't depend on them.
-        let recognizer = GestureRecognizer(
-            probe: TitlebarHitTester(), settings: { store.settings },
-            onUpdate: { update in
-                DispatchQueue.main.async { controller.handle(update) }
-            })
-        self.recognizer = recognizer
-        tap = EventTap(recognizer: recognizer)
+        let onUpdate: (GestureUpdate) -> Void = { update in
+            DispatchQueue.main.async { controller.handle(update) }
+        }
+        let probe = TitlebarHitTester()
+        let router = InputRouter(
+            gestures: GestureRecognizer(probe: probe, settings: { store.settings }, onUpdate: onUpdate),
+            dragScroll: DragScrollRecognizer(
+                probe: probe, windows: WindowMover(), settings: { store.settings }, onUpdate: onUpdate))
+        self.router = router
+        tap = EventTap(router: router)
         buildMenu()
 
         if Accessibility.isTrusted(prompt: true) {
@@ -71,7 +74,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
 
     private func refreshMenu() {
         let trusted = tap?.isRunning ?? false
-        let paused = recognizer?.isPaused ?? false
+        let paused = router?.isPaused ?? false
         if !trusted {
             statusLine.title = "Waiting for Accessibility access"
         } else {
@@ -110,8 +113,8 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     }
 
     @objc private func togglePause() {
-        recognizer?.isPaused.toggle()
-        store.isPaused = recognizer?.isPaused ?? false
+        router?.isPaused.toggle()
+        store.isPaused = router?.isPaused ?? false
         refreshMenu()
     }
 

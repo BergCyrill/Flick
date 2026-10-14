@@ -2,20 +2,21 @@ import AppKit
 import FlickCore
 import os
 
-/// Session event tap for trackpad scroll and gesture events. Hands every event to the
-/// recognizer and drops the ones it claims.
+/// Session event tap for scroll and trackpad gesture events, plus left-mouse events for drag +
+/// scroll. Hands every event to the router and drops the ones it claims (never mouse events).
 @MainActor
 final class EventTap {
     private static let logger = Logger(subsystem: "local.personal.flick", category: "EventTap")
     /// CGEventType raw values for gesture events, which have no named case in the SDK.
     private static let gestureTypes: [UInt32] = [29, 30]
+    private static let mouseTypes: [CGEventType] = [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
 
-    private let recognizer: GestureRecognizer
+    private let router: InputRouter
     private var port: CFMachPort?
     private var source: CFRunLoopSource?
 
-    init(recognizer: GestureRecognizer) {
-        self.recognizer = recognizer
+    init(router: InputRouter) {
+        self.router = router
     }
 
     var isRunning: Bool { port != nil }
@@ -26,6 +27,9 @@ final class EventTap {
         var mask = CGEventMask(1) << CGEventType.scrollWheel.rawValue
         for type in Self.gestureTypes {
             mask |= CGEventMask(1) << type
+        }
+        for type in Self.mouseTypes {
+            mask |= CGEventMask(1) << type.rawValue
         }
         guard
             let port = CGEvent.tapCreate(
@@ -50,11 +54,11 @@ final class EventTap {
             Self.logger.warning("Event tap disabled by the system (type \(type.rawValue)), re-enabling")
             if let port { CGEvent.tapEnable(tap: port, enable: true) }
             // Events were lost while disabled; don't wait for an `ended` that may never come.
-            recognizer.reset()
+            router.reset()
             return false
         }
         guard let input else { return false }
-        return recognizer.handle(input) == .swallow
+        return router.handle(input) == .swallow
     }
 }
 
@@ -69,27 +73,45 @@ private let eventTapCallback: CGEventTapCallBack = { _, type, event, userInfo in
 }
 
 /// Converts CGEvents into FlickCore's InputEvent. Returns `nil` for anything Flick ignores
-/// (mouse wheels, other gesture kinds).
+/// (mouse wheels without a held button, other gesture kinds).
 enum EventTranslator {
     static func input(from cgEvent: CGEvent) -> InputEvent? {
         guard let event = NSEvent(cgEvent: cgEvent) else { return nil }
         let location = GlobalPoint(x: cgEvent.location.x, y: cgEvent.location.y)
         switch event.type {
+        case .leftMouseDown:
+            return .mouseDown(location: location)
+        case .leftMouseDragged:
+            return .mouseDragged(location: location)
+        case .leftMouseUp:
+            return .mouseUp(location: location)
         case .scrollWheel:
-            guard event.hasPreciseScrollingDeltas else { return nil }
-            if let momentum = phase(event.momentumPhase) {
-                return .momentum(phase: momentum)
-            }
-            guard let phase = phase(event.phase) else { return nil }
-            return .scroll(
-                phase: phase, deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY,
-                invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
+            return scroll(event, location: location)
         case .magnify:
             guard let phase = phase(event.phase) else { return nil }
             return .magnify(phase: phase, magnification: event.magnification, location: location)
         default:
             return nil
         }
+    }
+
+    private static func scroll(_ event: NSEvent, location: GlobalPoint) -> InputEvent? {
+        let momentum = phase(event.momentumPhase)
+        // Left button held: a candidate for drag + scroll, mouse wheel and trackpad alike. Asking
+        // the event source (not our own mouse-down tracking) means a lost mouse-up can't fool it.
+        if momentum == nil, CGEventSource.buttonState(.combinedSessionState, button: .left) {
+            return .dragScroll(
+                deltaY: event.scrollingDeltaY, precise: event.hasPreciseScrollingDeltas,
+                invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
+        }
+        guard event.hasPreciseScrollingDeltas else { return nil }
+        if let momentum {
+            return .momentum(phase: momentum)
+        }
+        guard let phase = phase(event.phase) else { return nil }
+        return .scroll(
+            phase: phase, deltaX: event.scrollingDeltaX, deltaY: event.scrollingDeltaY,
+            invertedFromDevice: event.isDirectionInvertedFromDevice, location: location)
     }
 
     private static func phase(_ phase: NSEvent.Phase) -> GesturePhase? {
