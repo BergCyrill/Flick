@@ -26,9 +26,10 @@ task run              # build, bundle to build/Flick.app, (re)launch
 ```
 
 On first launch Flick asks for Accessibility access. Enable it under **System Settings →
-Privacy & Security → Accessibility**; Flick picks it up within a few seconds. The bundle is
-ad-hoc signed, so after a rebuild macOS may stop trusting it: remove Flick from that list,
-run `task run` again and re-enable it.
+Privacy & Security → Accessibility**; Flick picks it up within a few seconds. `task bundle`
+signs with the *Flick Code Signing* certificate when the keychain has it (see *Code signing*),
+so the permission survives rebuilds. Without it the build is signed ad-hoc and says so; after
+each rebuild remove Flick from that list, run `task run` again and re-enable it.
 
 **Upgrading from a build before the bundle ID change** (`local.personal.flick` →
 `io.github.bergcyrill.flick`): settings carry over on first launch, but macOS sees a new app.
@@ -121,6 +122,8 @@ available, a Magic Trackpad:
 - [ ] Settings: with *Show live preview* off, no overlay appears and windows still move on lift.
 - [ ] Settings survive a relaunch (`task run`).
 - [ ] First launch after the bundle ID change: settings changed before it are still set.
+- [ ] Rebuild after a code change (`task run`): Accessibility stays granted, no prompt.
+- [ ] The menu's first line shows *Flick &lt;version&gt;*; the settings window's footer shows *Version &lt;version&gt; (&lt;build&gt;)* without scrolling.
 - [ ] *Pause gestures* while the settings window is open shows the paused note; unpausing hides it.
 - [ ] *Launch at login* on: Flick appears in System Settings → General → Login Items and starts after logging out and in; off removes it. If macOS wants approval, the hint says so and *Open Login Items…* opens the pane.
 - [ ] Mouse wheel: drag a Finder, Safari, Terminal and VS Code window by its titlebar and scroll away: fill preview; release: the window fills and stays filled.

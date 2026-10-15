@@ -64,6 +64,10 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
         menu.autoenablesItems = false
+        let versionLine = NSMenuItem(title: "Flick \(AppVersion.short)", action: nil, keyEquivalent: "")
+        versionLine.isEnabled = false
+        menu.addItem(versionLine)
+        menu.addItem(.separator())
         statusLine.isEnabled = false
         menu.addItem(statusLine)
         menu.addItem(accessLine)
