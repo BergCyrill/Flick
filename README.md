@@ -21,8 +21,9 @@ and quarters, pinch out to fill, pinch in to restore. A free, minimal take on
    the message about Flick and click **Open Anyway**.
 3. Grant Flick **Accessibility** access when it asks.
 
-A new version downloaded this way needs *Open Anyway* once more; the Accessibility permission
-stays.
+From then on Flick checks for updates once a day and shows *Update to …* in its menu when one
+is ready; installing it keeps the Accessibility permission and needs no *Open Anyway*. Flick
+0.1.0 has no updater: install the next version by hand once.
 
 ## Getting started
 
@@ -78,12 +79,22 @@ Never create a second certificate: a new one changes the designated requirement,
 user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
 password manager.
 
+Updates are signed with a separate EdDSA key, created once the same way:
+
+```sh
+scripts/make-update-key.sh      # login keychain, ~/flick-update-key, prints the public key
+```
+
+Keep the private key in the password manager and the `SPARKLE_ED_PRIVATE_KEY` secret; the
+public key is `SUPublicEDKey` in `support/Info.plist`. Losing the private key means installed
+copies can't be updated any more.
+
 ## Releases
 
 Every merge to `main` that brings a `feat`, `fix` or breaking commit publishes a release:
 `.github/workflows/release.yml` runs `task release`, which tests, lints, builds, signs, checks
-the signature and publishes `Flick-<version>.dmg` with release notes on GitHub Releases. The
-version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
+the signature and publishes `Flick-<version>.dmg` and the `appcast.xml` Sparkle reads, with
+release notes on GitHub Releases. The version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
 `feat` → minor, breaking → minor below 1.0 and major from 1.0. Merges with only `docs`,
 `chore`, `ci`, `build`, `test`, `refactor` or `style` commits release nothing. With squash
 merges the PR title is the commit, so it must be a Conventional Commit too.
@@ -174,3 +185,4 @@ available, a Magic Trackpad:
 - [ ] Fullscreen window: right-click and right-hold + scroll near the top edge behave as usual.
 - [ ] Trackpad, *Right button*: a plain two-finger click on a titlebar opens the menu as usual.
 - [ ] Release DMG: opening it shows *Flick* and an *Applications* link; after dragging and *Open Anyway*, the menu shows the release's version.
+- [ ] *Check for updates automatically* off: `defaults read io.github.bergcyrill.flick SUEnableAutomaticChecks` prints 0; on again prints 1. The settings window shows everything without scrolling.

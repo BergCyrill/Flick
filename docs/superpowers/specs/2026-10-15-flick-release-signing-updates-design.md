@@ -58,7 +58,6 @@ hand once.
   - generates the key and certificate with `openssl`;
   - writes a password-protected `.p12` outside the repo;
   - imports it into the login keychain;
-  - creates the Sparkle EdDSA key pair (PR 3 adds this step);
   - prints what to store where: the `.p12` (base64), its password and the Sparkle private key
     go into the password manager **and** the GitHub secrets below; the Sparkle public key goes
     into `support/Info.plist`.
@@ -187,8 +186,11 @@ settles it. Fallback: trust it for code signing on the runner with
 ### Dependency and bundle
 
 - Sparkle 2 via SwiftPM, for the `Flick` target only. `FlickCore` and the tests don't link it.
-- Sparkle's command-line tools (`generate_keys`, `sign_update`) come from its release tarball as
-  a non-flake input in `flake.nix`, the same version as `Package.resolved`.
+- Sparkle **2.10.0**, pinned exactly. Its command-line tools (`generate_keys`, `sign_update`)
+  come from its release tarball as a non-flake input in `flake.nix`, the same version as
+  `Package.resolved`.
+- Swift 6: the updater conforms to Sparkle's delegate protocol with `@preconcurrency` (Sparkle's
+  Objective-C protocol isn't actor-annotated; it calls on the main thread).
 - `task bundle` copies `Sparkle.framework` to `Contents/Frameworks` and adds the rpath
   `@executable_path/../Frameworks` with `install_name_tool`.
 
@@ -200,7 +202,7 @@ settles it. Fallback: trust it for code signing on the runner with
   `FlickSettings` doesn't change.
 - `Info.plist`:
   - `SUFeedURL` = `https://github.com/BergCyrill/Flick/releases/latest/download/appcast.xml`
-  - `SUPublicEDKey`, printed by the setup script
+  - `SUPublicEDKey`, printed by `scripts/make-update-key.sh`
   - `SUEnableAutomaticChecks` = `YES`, so Sparkle doesn't ask on the second launch; default
     interval of 24 h; no system profiling — a check is one GET request to GitHub.
 - **Gentle reminders:** a scheduled check that finds an update doesn't pop up a window over
@@ -214,8 +216,24 @@ settles it. Fallback: trust it for code signing on the runner with
   number), `sparkle:shortVersionString`, `sparkle:minimumSystemVersion` 14.0, the versioned DMG
   URL as enclosure, and its EdDSA signature from `sign_update`.
 - The item's description is the release notes as HTML, from a second git-cliff template.
-- In CI the private key goes from the secret to `sign_update` through a file in `$RUNNER_TEMP`,
-  deleted afterwards. With `DRY=1` and no key, the appcast is written unsigned and marked so.
+- `scripts/make-appcast.sh` writes and checks it; `task release` calls it with the GitHub
+  download URL, the local end-to-end test with a localhost one.
+- The private key reaches `sign_update` on stdin (`--ed-key-file -`), never as a file. Without
+  `SPARKLE_ED_PRIVATE_KEY` it is read from the login keychain (account
+  `io.github.bergcyrill.flick`); without either, only `DRY=1` continues, with an unsigned
+  appcast marked so.
+- The signature is checked with `openssl` against the `SUPublicEDKey` in the built app's
+  `Info.plist`, independent of Sparkle's tools.
+- `ci.yml`'s `release-dry` job gets the key too, so a mismatched key pair fails on the pull
+  request.
+
+### The update key
+
+- `scripts/make-update-key.sh`, run once by the maintainer: `generate_keys --account
+  io.github.bergcyrill.flick` (a per-app account, not Sparkle's shared default), exports the
+  private key for the password manager and the `SPARKLE_ED_PRIVATE_KEY` secret, prints the
+  public key for `Info.plist`. It refuses if the account already has a key. A separate script
+  from the certificate's, which refuses because the certificate exists.
 
 ### What an update does
 
@@ -270,6 +288,14 @@ Anyway*.
 - `hdiutil verify` passes on the DMG.
 - The appcast signature verifies against the `SUPublicEDKey` in the built `Info.plist`, which
   catches a private key that doesn't match the public one.
+
+### Local end-to-end update (before merging PR 3)
+
+An older build (lower build number) at a scratch path, its feed pointed at a localhost appcast
+that offers a newer DMG signed with the real key: the scheduled check shows *Update to …* in
+the menu, installing it relaunches the newer version without *Open Anyway*, and Accessibility
+stays granted. If Sparkle or App Transport Security refuses a localhost feed, this check moves
+to after the first two releases with an updater.
 
 ### Manual checklist (README)
 

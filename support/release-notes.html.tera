@@ -1,0 +1,5 @@
+{% for group, commits in commits | group_by(attribute="group") %}<h3>{{ group | striptags | trim | upper_first }}</h3>
+<ul>
+{% for commit in commits %}<li>{% if commit.scope %}<b>{{ commit.scope }}:</b> {% endif %}{{ commit.message | upper_first | escape }}</li>
+{% endfor %}</ul>
+{% endfor %}

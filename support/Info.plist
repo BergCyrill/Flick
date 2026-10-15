@@ -20,5 +20,13 @@
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>SUAllowsAutomaticUpdates</key>
+    <false/>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://github.com/BergCyrill/Flick/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>fPweGWxVcv3XJ8QUfj+EpXXZ6QOzjxeHTV8JI9AoTU0=</string>
 </dict>
 </plist>

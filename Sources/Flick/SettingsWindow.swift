@@ -78,6 +78,11 @@ struct SettingsView: View {
                 if store.loginProblem != nil {
                     Button("Open Login Items…") { LoginItem.openSystemSettings() }
                 }
+                Toggle(isOn: $store.checksForUpdates) {
+                    Self.label(
+                        "Check for updates automatically",
+                        hint: "Once a day, from GitHub. Flick asks before installing anything.")
+                }
             }
             Section {
                 Text("Fullscreen windows are always left alone. Changes apply from the next gesture.")
@@ -90,7 +95,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .toggleStyle(.switch)
-        .frame(width: 480, height: 590)
+        .frame(width: 480, height: 640)
     }
 
     private static func label(_ title: String, hint: String, isProblem: Bool = false) -> some View {

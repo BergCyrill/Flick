@@ -38,6 +38,8 @@ jobs:
           SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
         run: nix develop -c scripts/ci-keychain.sh import
       - name: Dry-run the release
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: nix develop -c task release DRY=1
       - name: Delete the keychain
         if: always()

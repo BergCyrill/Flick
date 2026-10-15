@@ -35,13 +35,18 @@ tasks:
   bundle:
     desc: Assemble build/Flick.app, stamp its version and sign it
     deps: [build]
+    vars:
+      BIN:
+        sh: swift build -c release --show-bin-path
     cmds:
       - rm -rf {{.APP}}
-      - mkdir -p {{.APP}}/Contents/MacOS
+      - mkdir -p {{.APP}}/Contents/MacOS {{.APP}}/Contents/Frameworks
       - cp support/Info.plist {{.APP}}/Contents/Info.plist
       - plutil -replace CFBundleShortVersionString -string "{{.VERSION}}" {{.APP}}/Contents/Info.plist
       - plutil -replace CFBundleVersion -string "{{.BUILD}}" {{.APP}}/Contents/Info.plist
-      - cp "$(swift build -c release --show-bin-path)/Flick" {{.APP}}/Contents/MacOS/Flick
+      - cp "{{.BIN}}/Flick" {{.APP}}/Contents/MacOS/Flick
+      - ditto "{{.BIN}}/Sparkle.framework" {{.APP}}/Contents/Frameworks/Sparkle.framework
+      - install_name_tool -add_rpath @executable_path/../Frameworks {{.APP}}/Contents/MacOS/Flick
       - scripts/sign-app.sh {{.APP}}
 
   release-notes:

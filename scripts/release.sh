@@ -16,6 +16,12 @@ fail() {
   exit 1
 }
 
+# In CI the update key can only come from the secret; without it a dry run would pass with an
+# unsigned appcast and hide the missing secret until the real release.
+if [[ -n ${CI:-} ]]; then
+  : "${SPARKLE_ED_PRIVATE_KEY:?is not set — add the GitHub secret, see README → Code signing}"
+fi
+
 notes=$(git-cliff --unreleased --strip all 2>/dev/null)
 if [[ -z ${notes//[[:space:]]/} ]]; then
   echo "Nothing to release: no feat, fix or breaking commits since the last tag."
@@ -50,9 +56,14 @@ expected="designated => identifier \"$bundle_id\" and certificate leaf = H\"$cer
   fail "unexpected designated requirement (wrong or missing certificate?): $requirement"
 
 printf '%s\n' "$notes" >"$notes_file"
+git-cliff --unreleased --strip all --body "$(cat support/release-notes.html.tera)" \
+  2>/dev/null >build/release-notes.html
+scripts/make-appcast.sh "$app" "$dmg" \
+  "https://github.com/BergCyrill/Flick/releases/download/$tag/Flick-$version.dmg" \
+  build/release-notes.html build/appcast.xml
 
 if [[ -n $dry ]]; then
-  echo "Dry run: would publish $tag with $dmg and these notes:"
+  echo "Dry run: would publish $tag with $dmg, build/appcast.xml and these notes:"
   cat "$notes_file"
   exit 0
 fi
@@ -65,6 +76,6 @@ case $state in
   false) fail "$tag is already published" ;;
 esac
 gh release create "$tag" --draft --title "Flick $version" --notes-file "$notes_file" \
-  --target "$(git rev-parse HEAD)" "$dmg"
+  --target "$(git rev-parse HEAD)" "$dmg" build/appcast.xml
 gh release edit "$tag" --draft=false --latest
 echo "Published Flick $version."
