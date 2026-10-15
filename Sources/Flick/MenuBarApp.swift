@@ -19,6 +19,7 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let checkItem = NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: "")
     private let updateItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let updater = Updater()
+    private let updateDot = NSView()
     private var router: InputRouter?
     private var tap: EventTap?
     private var trustTimer: Timer?
@@ -51,6 +52,11 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
             .sink { [weak self] enabled in self?.tap?.isRightButtonEnabled = enabled }
             .store(in: &subscriptions)
         buildMenu()
+        updater.$availableVersion
+            .map { $0 != nil }
+            .removeDuplicates()
+            .sink { [weak self] pending in self?.showUpdateDot(pending) }
+            .store(in: &subscriptions)
 
         if Accessibility.isTrusted(prompt: true) {
             startTap()
@@ -64,6 +70,9 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item.button?.image = Self.icon()
         item.button?.toolTip = "Flick"
+        if let button = item.button {
+            addUpdateDot(to: button)
+        }
 
         let menu = NSMenu()
         menu.autoenablesItems = false
@@ -164,9 +173,34 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSWorkspace.shared.open(Self.settingsURL)
     }
 
-    /// The menu-bar glyph from the design drawing, as a template image.
-    private static func icon() -> NSImage {
-        let image = NSImage(size: NSSize(width: 16, height: 12), flipped: true) { _ in
+    /// A dot in Flick's blue next to the glyph while an update waits. The glyph stays a template
+    /// image so macOS keeps tinting it for the menu bar; the dot is a layer on top.
+    private func addUpdateDot(to button: NSStatusBarButton) {
+        let diameter: CGFloat = 5.2
+        updateDot.wantsLayer = true
+        updateDot.layer?.backgroundColor = NSColor(srgbRed: 0x2F / 255, green: 0x6B / 255, blue: 1, alpha: 1).cgColor
+        updateDot.layer?.cornerRadius = diameter / 2
+        updateDot.isHidden = true
+        updateDot.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(updateDot)
+        // The dot's centre in the wide icon is (18.2, 2.8), the icon's centre (10.5, 6).
+        NSLayoutConstraint.activate([
+            updateDot.widthAnchor.constraint(equalToConstant: diameter),
+            updateDot.heightAnchor.constraint(equalToConstant: diameter),
+            updateDot.centerXAnchor.constraint(equalTo: button.centerXAnchor, constant: 7.7),
+            updateDot.centerYAnchor.constraint(equalTo: button.centerYAnchor, constant: -3.2),
+        ])
+    }
+
+    private func showUpdateDot(_ visible: Bool) {
+        statusItem?.button?.image = Self.icon(roomForDot: visible)
+        updateDot.isHidden = !visible
+    }
+
+    /// The menu-bar glyph from the design drawing, as a template image. With room for the dot it
+    /// is 5 pt wider on the right, so the glyph keeps its place.
+    private static func icon(roomForDot: Bool = false) -> NSImage {
+        let image = NSImage(size: NSSize(width: roomForDot ? 21 : 16, height: 12), flipped: true) { _ in
             let path = NSBezierPath()
             path.lineWidth = 1.6
             path.lineCapStyle = .round

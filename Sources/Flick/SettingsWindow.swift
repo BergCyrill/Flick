@@ -81,8 +81,14 @@ struct SettingsView: View {
                 Toggle(isOn: $store.checksForUpdates) {
                     Self.label(
                         "Check for updates automatically",
-                        hint: "Once a day, from GitHub. Flick asks before installing anything.")
+                        hint: "From GitHub. Flick asks before installing anything.")
                 }
+                Picker("Check every", selection: $store.updateCheckInterval) {
+                    ForEach(UpdateCheckInterval.allCases, id: \.self) { interval in
+                        Text(interval.title).tag(interval)
+                    }
+                }
+                .disabled(!store.checksForUpdates)
             }
             Section {
                 Text("Fullscreen windows are always left alone. Changes apply from the next gesture.")
@@ -104,6 +110,17 @@ struct SettingsView: View {
             Text(hint)
                 .font(.caption)
                 .foregroundStyle(isProblem ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
+        }
+    }
+}
+
+private extension UpdateCheckInterval {
+    var title: String {
+        switch self {
+        case .hour: "1 hour"
+        case .fourHours: "4 hours"
+        case .eightHours: "8 hours"
+        case .day: "24 hours"
         }
     }
 }
