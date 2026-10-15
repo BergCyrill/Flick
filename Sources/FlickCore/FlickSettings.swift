@@ -36,6 +36,9 @@ public struct FlickSettings: Equatable, Sendable {
     /// The switch that came before the picker: read once to carry its value over, never written.
     private static let oldScrollKey = "scrollWhileDragging"
 
+    /// Every key `init(defaults:)` reads.
+    static var storedKeys: [String] { keys.map(\.0) + [scrollButtonKey, oldScrollKey] }
+
     private static var keys: [(String, WritableKeyPath<FlickSettings, Bool>)] {
         [
             ("swipeToSnap", \.swipeToSnap),

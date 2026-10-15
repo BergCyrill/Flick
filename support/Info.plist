@@ -5,7 +5,7 @@
     <key>CFBundleExecutable</key>
     <string>Flick</string>
     <key>CFBundleIdentifier</key>
-    <string>local.personal.flick</string>
+    <string>io.github.bergcyrill.flick</string>
     <key>CFBundleName</key>
     <string>Flick</string>
     <key>CFBundlePackageType</key>

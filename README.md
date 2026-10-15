@@ -30,6 +30,12 @@ Privacy & Security → Accessibility**; Flick picks it up within a few seconds. 
 ad-hoc signed, so after a rebuild macOS may stop trusting it: remove Flick from that list,
 run `task run` again and re-enable it.
 
+**Upgrading from a build before the bundle ID change** (`local.personal.flick` →
+`io.github.bergcyrill.flick`): settings carry over on first launch, but macOS sees a new app.
+Grant the new *Flick* Accessibility access and turn *Launch at login* on again in Flick's
+settings. The old *Flick* entry in *Accessibility* grants nothing any more; remove it whenever
+convenient.
+
 ## Project layout
 
 ```text
@@ -114,6 +120,7 @@ available, a Magic Trackpad:
 - [ ] Settings: with *Swipe on titlebar to snap* off, a titlebar swipe scrolls the app (e.g. Safari's tab strip) and pinch still works; the same the other way round for *Pinch on titlebar*.
 - [ ] Settings: with *Show live preview* off, no overlay appears and windows still move on lift.
 - [ ] Settings survive a relaunch (`task run`).
+- [ ] First launch after the bundle ID change: settings changed before it are still set.
 - [ ] *Pause gestures* while the settings window is open shows the paused note; unpausing hides it.
 - [ ] *Launch at login* on: Flick appears in System Settings → General → Login Items and starts after logging out and in; off removes it. If macOS wants approval, the hint says so and *Open Login Items…* opens the pane.
 - [ ] Mouse wheel: drag a Finder, Safari, Terminal and VS Code window by its titlebar and scroll away: fill preview; release: the window fills and stays filled.

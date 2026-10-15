@@ -6,7 +6,7 @@ import Testing
 @Suite struct FlickSettingsTests {
     /// Runs `body` with a private defaults domain and removes the domain afterwards.
     func withDefaults(_ body: (UserDefaults) -> Void) {
-        let name = "local.personal.flick.tests.\(UUID().uuidString)"
+        let name = "io.github.bergcyrill.flick.tests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: name)!
         defer { defaults.removePersistentDomain(forName: name) }
         body(defaults)
