@@ -27,8 +27,6 @@
 - Everything else stays as it was: gestures that start anywhere but a titlebar reach the app,
   and fullscreen windows are left alone.
 
-Flick is a small, free take on [Swish](https://highlyopinionated.co/swish/).
-
 ## Install
 
 You need macOS 14 or later and a trackpad or a mouse.
