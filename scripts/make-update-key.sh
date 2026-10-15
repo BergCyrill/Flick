@@ -2,7 +2,7 @@
 # Creates Flick's EdDSA key pair for Sparkle updates, once: the private key goes into the login
 # keychain and into a file for the password manager and the GitHub secret; the public key goes
 # into support/Info.plist. Losing the private key means installed copies can't be updated any
-# more. See README → Code signing.
+# more. See docs/releasing.md.
 set -euo pipefail
 
 account=io.github.bergcyrill.flick

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds, checks and publishes a release of Flick on GitHub. Run it through `task release`;
-# with DRY=1 it stops before anything leaves this machine. See README → Releases.
+# with DRY=1 it stops before anything leaves this machine. See docs/releasing.md.
 set -euo pipefail
 
 # The certificate every release is signed with. Another one would change the designated
@@ -19,7 +19,7 @@ fail() {
 # In CI the update key can only come from the secret; without it a dry run would pass with an
 # unsigned appcast and hide the missing secret until the real release.
 if [[ -n ${CI:-} ]]; then
-  : "${SPARKLE_ED_PRIVATE_KEY:?is not set — add the GitHub secret, see README → Code signing}"
+  : "${SPARKLE_ED_PRIVATE_KEY:?is not set — add the GitHub secret, see docs/releasing.md}"
 fi
 
 notes=$(git-cliff --unreleased --strip all 2>/dev/null)

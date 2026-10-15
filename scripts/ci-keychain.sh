@@ -7,8 +7,8 @@ keychain="${RUNNER_TEMP:?RUNNER_TEMP is not set (CI only)}/signing.keychain-db"
 
 case ${1:-} in
   import)
-    : "${SIGNING_CERT_P12:?is not set — add the GitHub secret, see README → Code signing}"
-    : "${SIGNING_CERT_PASSWORD:?is not set — add the GitHub secret, see README → Code signing}"
+    : "${SIGNING_CERT_P12:?is not set — add the GitHub secret, see docs/releasing.md}"
+    : "${SIGNING_CERT_PASSWORD:?is not set — add the GitHub secret, see docs/releasing.md}"
     p12=$RUNNER_TEMP/signing.p12
     trap 'rm -f "$p12"' EXIT
     password=$(openssl rand -hex 16)

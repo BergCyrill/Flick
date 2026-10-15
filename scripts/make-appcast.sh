@@ -31,7 +31,7 @@ elif [[ -n ${DRY:-} ]]; then
   attributes="length=\"$(wc -c <"$dmg" | tr -d ' ')\""
   unsigned=1
 else
-  fail "no update key: set SPARKLE_ED_PRIVATE_KEY or import the key into the keychain (README → Code signing)"
+  fail "no update key: set SPARKLE_ED_PRIVATE_KEY or import the key into the keychain (docs/releasing.md)"
 fi
 
 if [[ -z $unsigned ]]; then

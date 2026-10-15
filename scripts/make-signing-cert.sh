@@ -2,7 +2,7 @@
 # Creates the self-signed "Flick Code Signing" certificate, imports it into the login keychain
 # and writes the pieces that go into the password manager and the GitHub secrets. Run it once,
 # ever: a second certificate changes Flick's designated requirement, and every user would have
-# to grant Accessibility again. See README → Code signing.
+# to grant Accessibility again. See docs/releasing.md.
 set -euo pipefail
 
 name="Flick Code Signing"

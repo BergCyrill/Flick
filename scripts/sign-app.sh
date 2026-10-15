@@ -17,7 +17,7 @@ if [[ -n $hash ]]; then
   identity=$hash
 else
   echo "warning: no \"$name\" certificate in the keychain; signing ad-hoc." >&2
-  echo "warning: macOS will ask for Accessibility again after this build (README → Code signing)." >&2
+  echo "warning: macOS will ask for Accessibility again after this build (CONTRIBUTING.md → Setup)." >&2
   identity=-
 fi
 
