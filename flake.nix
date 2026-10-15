@@ -30,6 +30,7 @@
             git-cliff
             gh
             actionlint
+            librsvg
           ];
           shellHook = ''
             export PATH="${sparkle}/bin:$PATH"
