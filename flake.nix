@@ -23,6 +23,7 @@
             shellcheck
             git-cliff
             gh
+            actionlint
           ];
           shellHook = ''
             if ! xcrun --find swift >/dev/null 2>&1; then

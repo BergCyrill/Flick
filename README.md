@@ -78,6 +78,24 @@ Never create a second certificate: a new one changes the designated requirement,
 user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
 password manager.
 
+## Releases
+
+Every merge to `main` that brings a `feat`, `fix` or breaking commit publishes a release:
+`.github/workflows/release.yml` runs `task release`, which tests, lints, builds, signs, checks
+the signature and publishes `Flick-<version>.dmg` with release notes on GitHub Releases. The
+version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
+`feat` → minor, breaking → minor below 1.0 and major from 1.0. Merges with only `docs`,
+`chore`, `ci`, `build`, `test`, `refactor` or `style` commits release nothing. With squash
+merges the PR title is the commit, so it must be a Conventional Commit too.
+
+```sh
+task release-notes      # what the next release would say (empty: nothing to release)
+task release DRY=1      # the whole release locally, without publishing
+```
+
+Pull requests run `task test`, `task lint` and `task build`, and — for branches of this
+repository — `task release DRY=1` with the signing certificate (`.github/workflows/ci.yml`).
+
 ## Usage
 
 Put the pointer on a window's titlebar (the top 40 pt, toolbars included), then:
