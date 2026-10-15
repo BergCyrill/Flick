@@ -10,6 +10,10 @@ result
 # Local secrets
 .env
 .env.*
+*.p12
+*.cer
+*.pem
+*.key
 
 # macOS
 .DS_Store

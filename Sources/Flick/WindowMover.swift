@@ -5,7 +5,7 @@ import os
 /// Reads and sets window frames through Accessibility.
 @MainActor
 final class WindowMover: WindowAccess {
-    private static let logger = Logger(subsystem: "local.personal.flick", category: "WindowMover")
+    private static let logger = Logger(subsystem: "io.github.bergcyrill.flick", category: "WindowMover")
     /// Moves run outside the event tap, so slow-resizing apps may take longer than the global
     /// 0.25 s Accessibility timeout set by MenuBarApp.
     private static let moveTimeout: Float = 1

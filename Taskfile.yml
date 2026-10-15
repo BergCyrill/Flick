@@ -2,6 +2,11 @@ version: "3"
 
 vars:
   APP: build/Flick.app
+  # `task release` passes the real version; local builds are "<last tag>-dev".
+  VERSION:
+    sh: tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo v0.0.0); echo "${tag#v}-dev"
+  BUILD:
+    sh: git rev-list --count HEAD 2>/dev/null || echo 0
 
 tasks:
   test:
@@ -10,10 +15,11 @@ tasks:
       - swift test
 
   lint:
-    desc: Run swiftlint and swift-format in strict mode
+    desc: Run swiftlint, swift-format (strict) and shellcheck
     cmds:
       - swiftlint lint --strict --quiet
       - swift format lint --strict --recursive Sources Tests Package.swift
+      - shellcheck scripts/*.sh
 
   format:
     desc: Format all Swift sources in place
@@ -26,14 +32,16 @@ tasks:
       - swift build -c release
 
   bundle:
-    desc: Assemble and ad-hoc sign build/Flick.app
+    desc: Assemble build/Flick.app, stamp its version and sign it
     deps: [build]
     cmds:
       - rm -rf {{.APP}}
       - mkdir -p {{.APP}}/Contents/MacOS
       - cp support/Info.plist {{.APP}}/Contents/Info.plist
+      - plutil -replace CFBundleShortVersionString -string "{{.VERSION}}" {{.APP}}/Contents/Info.plist
+      - plutil -replace CFBundleVersion -string "{{.BUILD}}" {{.APP}}/Contents/Info.plist
       - cp "$(swift build -c release --show-bin-path)/Flick" {{.APP}}/Contents/MacOS/Flick
-      - codesign --force --sign - {{.APP}}
+      - scripts/sign-app.sh {{.APP}}
 
   run:
     desc: Bundle and (re)start Flick

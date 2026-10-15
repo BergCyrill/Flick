@@ -17,7 +17,7 @@ nonisolated(unsafe) private var heldPress: CGEvent?
 /// Hands every event to the router and acts on its decision.
 @MainActor
 final class EventTap {
-    private static let logger = Logger(subsystem: "local.personal.flick", category: "EventTap")
+    private static let logger = Logger(subsystem: "io.github.bergcyrill.flick", category: "EventTap")
     /// CGEventType raw values for gesture events, which have no named case in the SDK.
     private static let gestureTypes: [UInt32] = [29, 30]
     private static let mouseTypes: [CGEventType] = [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
@@ -133,7 +133,7 @@ private let eventTapCallback: CGEventTapCallBack = { _, type, event, userInfo in
 /// let them through: the app gets its right-click after all, on release.
 private func replay(press: CGEvent?, release: CGEvent) {
     guard let press, let release = release.copy() else {
-        Logger(subsystem: "local.personal.flick", category: "EventTap").error("No right press to replay")
+        Logger(subsystem: "io.github.bergcyrill.flick", category: "EventTap").error("No right press to replay")
         return
     }
     for event in [press, release] {

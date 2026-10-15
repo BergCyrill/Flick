@@ -26,9 +26,16 @@ task run              # build, bundle to build/Flick.app, (re)launch
 ```
 
 On first launch Flick asks for Accessibility access. Enable it under **System Settings →
-Privacy & Security → Accessibility**; Flick picks it up within a few seconds. The bundle is
-ad-hoc signed, so after a rebuild macOS may stop trusting it: remove Flick from that list,
-run `task run` again and re-enable it.
+Privacy & Security → Accessibility**; Flick picks it up within a few seconds. `task bundle`
+signs with the *Flick Code Signing* certificate when the keychain has it (see *Code signing*),
+so the permission survives rebuilds. Without it the build is signed ad-hoc and says so; after
+each rebuild remove Flick from that list, run `task run` again and re-enable it.
+
+**Upgrading from a build before the bundle ID change** (`local.personal.flick` →
+`io.github.bergcyrill.flick`): settings carry over on first launch, but macOS sees a new app.
+Grant the new *Flick* Accessibility access and turn *Launch at login* on again in Flick's
+settings. The old *Flick* entry in *Accessibility* grants nothing any more; remove it whenever
+convenient.
 
 ## Project layout
 
@@ -41,6 +48,22 @@ docs/design/             design drivers (gesture map, live preview)
 docs/logo/               logo lockups (light/dark), mark, social preview
 docs/superpowers/        spec and implementation plan
 ```
+
+## Code signing
+
+Builds are signed with a self-signed certificate, *Flick Code Signing*. macOS ties the
+Accessibility permission to Flick's bundle ID and this certificate, so the permission survives
+rebuilds and updates. The maintainer creates the certificate once:
+
+```sh
+scripts/make-signing-cert.sh    # imports it into the login keychain, writes ~/flick-signing
+```
+
+It prints the next steps: keep the `.p12` and its password in the password manager, set the
+GitHub secrets `SIGNING_CERT_P12` and `SIGNING_CERT_PASSWORD`, delete `~/flick-signing`.
+Never create a second certificate: a new one changes the designated requirement, and every
+user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
+password manager.
 
 ## Usage
 
@@ -98,6 +121,9 @@ available, a Magic Trackpad:
 - [ ] Settings: with *Swipe on titlebar to snap* off, a titlebar swipe scrolls the app (e.g. Safari's tab strip) and pinch still works; the same the other way round for *Pinch on titlebar*.
 - [ ] Settings: with *Show live preview* off, no overlay appears and windows still move on lift.
 - [ ] Settings survive a relaunch (`task run`).
+- [ ] First launch after the bundle ID change: settings changed before it are still set.
+- [ ] Rebuild after a code change (`task run`): Accessibility stays granted, no prompt.
+- [ ] The menu's first line shows *Flick &lt;version&gt;*; the settings window's footer shows *Version &lt;version&gt; (&lt;build&gt;)* without scrolling.
 - [ ] *Pause gestures* while the settings window is open shows the paused note; unpausing hides it.
 - [ ] *Launch at login* on: Flick appears in System Settings → General → Login Items and starts after logging out and in; off removes it. If macOS wants approval, the hint says so and *Open Login Items…* opens the pane.
 - [ ] Mouse wheel: drag a Finder, Safari, Terminal and VS Code window by its titlebar and scroll away: fill preview; release: the window fills and stays filled.

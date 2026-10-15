@@ -83,11 +83,14 @@ struct SettingsView: View {
                 Text("Fullscreen windows are always left alone. Changes apply from the next gesture.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Text("Version \(AppVersion.short) (\(AppVersion.build))")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
         .toggleStyle(.switch)
-        .frame(width: 480, height: 560)
+        .frame(width: 480, height: 590)
     }
 
     private static func label(_ title: String, hint: String, isProblem: Bool = false) -> some View {
