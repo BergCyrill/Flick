@@ -21,8 +21,8 @@ and quarters, pinch out to fill, pinch in to restore. A free, minimal take on
    the message about Flick and click **Open Anyway**.
 3. Grant Flick **Accessibility** access when it asks.
 
-From then on Flick checks for updates once a day and shows *Update to …* in its menu when one
-is ready; installing it keeps the Accessibility permission and needs no *Open Anyway*. Flick
+From then on Flick checks for updates once a day (Settings → *Check every*: 1, 4, 8 or 24 hours)
+and shows *Update to …* in its menu when one is ready; installing it keeps the Accessibility permission and needs no *Open Anyway*. Flick
 0.1.0 has no updater: install the next version by hand once.
 
 ## Getting started
@@ -187,3 +187,4 @@ available, a Magic Trackpad:
 - [ ] Trackpad, *Right button*: a plain two-finger click on a titlebar opens the menu as usual.
 - [ ] Release DMG: opening it shows *Flick* and an *Applications* link; after dragging and *Open Anyway*, the menu shows the release's version.
 - [ ] *Check for updates automatically* off: `defaults read io.github.bergcyrill.flick SUEnableAutomaticChecks` prints 0; on again prints 1. The settings window shows everything without scrolling.
+- [ ] *Check every* offers 1, 4, 8 and 24 hours (24 by default) and is greyed out while automatic checks are off; choosing 4 hours makes `defaults read io.github.bergcyrill.flick SUScheduledCheckInterval` print 14400.

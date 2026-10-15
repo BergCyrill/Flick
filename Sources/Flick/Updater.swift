@@ -1,3 +1,4 @@
+import FlickCore
 import Sparkle
 
 /// Sparkle's updater: checks the appcast on GitHub and installs updates the user accepts.
@@ -23,6 +24,12 @@ final class Updater: NSObject, @preconcurrency SPUStandardUserDriverDelegate {
     var automaticallyChecksForUpdates: Bool {
         get { controller?.updater.automaticallyChecksForUpdates ?? false }
         set { controller?.updater.automaticallyChecksForUpdates = newValue }
+    }
+
+    /// Seconds between scheduled checks; Sparkle keeps it in its own defaults key too.
+    var updateCheckInterval: TimeInterval {
+        get { controller?.updater.updateCheckInterval ?? UpdateCheckInterval.day.seconds }
+        set { controller?.updater.updateCheckInterval = newValue }
     }
 
     /// Checks now and shows Sparkle's window: up to date, an error, or the update to install.

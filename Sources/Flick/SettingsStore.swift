@@ -29,6 +29,11 @@ final class SettingsStore: ObservableObject {
         didSet { updater?.automaticallyChecksForUpdates = checksForUpdates }
     }
 
+    /// Mirrors Sparkle's own setting; any other stored value shows as the nearest choice.
+    @Published var updateCheckInterval: UpdateCheckInterval {
+        didSet { updater?.updateCheckInterval = updateCheckInterval.seconds }
+    }
+
     /// Shown under the launch-at-login switch instead of its hint.
     @Published private(set) var loginProblem: String?
 
@@ -37,6 +42,8 @@ final class SettingsStore: ObservableObject {
         self.updater = updater
         settings = FlickSettings(defaults: defaults)
         checksForUpdates = updater?.automaticallyChecksForUpdates ?? false
+        updateCheckInterval = UpdateCheckInterval(
+            closestTo: updater?.updateCheckInterval ?? UpdateCheckInterval.day.seconds)
         launchAtLogin = LoginItem.isEnabled
         loginProblem = LoginItem.problem
     }
