@@ -17,11 +17,12 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let accessLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let pauseItem = NSMenuItem(title: "Pause gestures", action: nil, keyEquivalent: "")
     private let checkItem = NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: "")
+    private let updateItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let updater = Updater()
     private var router: InputRouter?
     private var tap: EventTap?
     private var trustTimer: Timer?
-    private let store = SettingsStore()
+    private lazy var store = SettingsStore(updater: updater)
     private lazy var settingsWindow = SettingsWindow(store: store)
     private var subscriptions: Set<AnyCancellable> = []
 
@@ -69,6 +70,10 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let versionLine = NSMenuItem(title: "Flick \(AppVersion.short)", action: nil, keyEquivalent: "")
         versionLine.isEnabled = false
         menu.addItem(versionLine)
+        updateItem.target = self
+        updateItem.action = #selector(checkForUpdates)
+        updateItem.isHidden = true
+        menu.addItem(updateItem)
         menu.addItem(.separator())
         statusLine.isEnabled = false
         menu.addItem(statusLine)
@@ -146,6 +151,12 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
+        if let version = updater.availableVersion {
+            updateItem.title = "Update to \(version)…"
+            updateItem.isHidden = false
+        } else {
+            updateItem.isHidden = true
+        }
         checkItem.isEnabled = updater.canCheckForUpdates
     }
 

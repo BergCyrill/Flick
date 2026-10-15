@@ -184,3 +184,4 @@ available, a Magic Trackpad:
 - [ ] Fullscreen window: right-click and right-hold + scroll near the top edge behave as usual.
 - [ ] Trackpad, *Right button*: a plain two-finger click on a titlebar opens the menu as usual.
 - [ ] Release DMG: opening it shows *Flick* and an *Applications* link; after dragging and *Open Anyway*, the menu shows the release's version.
+- [ ] *Check for updates automatically* off: `defaults read io.github.bergcyrill.flick SUEnableAutomaticChecks` prints 0; on again prints 1. The settings window shows everything without scrolling.

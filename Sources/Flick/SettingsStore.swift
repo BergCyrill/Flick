@@ -6,6 +6,7 @@ import Foundation
 @MainActor
 final class SettingsStore: ObservableObject {
     private let defaults: UserDefaults
+    private let updater: Updater?
 
     @Published var settings: FlickSettings {
         didSet { settings.save(to: defaults) }
@@ -23,12 +24,19 @@ final class SettingsStore: ObservableObject {
         }
     }
 
+    /// Mirrors Sparkle's own setting.
+    @Published var checksForUpdates: Bool {
+        didSet { updater?.automaticallyChecksForUpdates = checksForUpdates }
+    }
+
     /// Shown under the launch-at-login switch instead of its hint.
     @Published private(set) var loginProblem: String?
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, updater: Updater? = nil) {
         self.defaults = defaults
+        self.updater = updater
         settings = FlickSettings(defaults: defaults)
+        checksForUpdates = updater?.automaticallyChecksForUpdates ?? false
         launchAtLogin = LoginItem.isEnabled
         loginProblem = LoginItem.problem
     }
