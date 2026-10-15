@@ -25,6 +25,7 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: nix develop -c task release
       - name: Delete the keychain
         if: always()

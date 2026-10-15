@@ -21,8 +21,9 @@ and quarters, pinch out to fill, pinch in to restore. A free, minimal take on
    the message about Flick and click **Open Anyway**.
 3. Grant Flick **Accessibility** access when it asks.
 
-A new version downloaded this way needs *Open Anyway* once more; the Accessibility permission
-stays.
+From then on Flick checks for updates once a day and shows *Update to …* in its menu when one
+is ready; installing it keeps the Accessibility permission and needs no *Open Anyway*. Flick
+0.1.0 has no updater: install the next version by hand once.
 
 ## Getting started
 
@@ -92,8 +93,8 @@ copies can't be updated any more.
 
 Every merge to `main` that brings a `feat`, `fix` or breaking commit publishes a release:
 `.github/workflows/release.yml` runs `task release`, which tests, lints, builds, signs, checks
-the signature and publishes `Flick-<version>.dmg` with release notes on GitHub Releases. The
-version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
+the signature and publishes `Flick-<version>.dmg` and the `appcast.xml` Sparkle reads, with
+release notes on GitHub Releases. The version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
 `feat` → minor, breaking → minor below 1.0 and major from 1.0. Merges with only `docs`,
 `chore`, `ci`, `build`, `test`, `refactor` or `style` commits release nothing. With squash
 merges the PR title is the commit, so it must be a Conventional Commit too.

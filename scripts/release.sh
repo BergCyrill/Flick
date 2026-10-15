@@ -50,9 +50,14 @@ expected="designated => identifier \"$bundle_id\" and certificate leaf = H\"$cer
   fail "unexpected designated requirement (wrong or missing certificate?): $requirement"
 
 printf '%s\n' "$notes" >"$notes_file"
+git-cliff --unreleased --strip all --body "$(cat support/release-notes.html.tera)" \
+  2>/dev/null >build/release-notes.html
+scripts/make-appcast.sh "$app" "$dmg" \
+  "https://github.com/BergCyrill/Flick/releases/download/$tag/Flick-$version.dmg" \
+  build/release-notes.html build/appcast.xml
 
 if [[ -n $dry ]]; then
-  echo "Dry run: would publish $tag with $dmg and these notes:"
+  echo "Dry run: would publish $tag with $dmg, build/appcast.xml and these notes:"
   cat "$notes_file"
   exit 0
 fi
@@ -65,6 +70,6 @@ case $state in
   false) fail "$tag is already published" ;;
 esac
 gh release create "$tag" --draft --title "Flick $version" --notes-file "$notes_file" \
-  --target "$(git rev-parse HEAD)" "$dmg"
+  --target "$(git rev-parse HEAD)" "$dmg" build/appcast.xml
 gh release edit "$tag" --draft=false --latest
 echo "Published Flick $version."
