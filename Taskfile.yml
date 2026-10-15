@@ -43,6 +43,11 @@ tasks:
       - cp "$(swift build -c release --show-bin-path)/Flick" {{.APP}}/Contents/MacOS/Flick
       - scripts/sign-app.sh {{.APP}}
 
+  release-notes:
+    desc: Print the release notes since the last tag (empty means nothing to release)
+    cmds:
+      - git-cliff --unreleased --strip all
+
   run:
     desc: Bundle and (re)start Flick
     deps: [bundle]

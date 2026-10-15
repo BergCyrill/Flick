@@ -21,6 +21,8 @@
             pre-commit
             openssl
             shellcheck
+            git-cliff
+            gh
           ];
           shellHook = ''
             if ! xcrun --find swift >/dev/null 2>&1; then
