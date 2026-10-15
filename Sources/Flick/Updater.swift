@@ -3,18 +3,31 @@ import Sparkle
 
 /// Sparkle's updater: checks the appcast on GitHub and installs updates the user accepts.
 /// An update found by a scheduled check waits in the menu (Sparkle's gentle reminders) instead
-/// of opening a window over whatever the user is doing.
+/// of opening a window over whatever the user is doing; a dot on the menu-bar icon and one
+/// notification per version point at it until the user installs or skips it.
 @MainActor
-final class Updater: NSObject, @preconcurrency SPUStandardUserDriverDelegate {
+final class Updater: NSObject, @preconcurrency SPUUpdaterDelegate,
+    @preconcurrency SPUStandardUserDriverDelegate
+{
     private var controller: SPUStandardUpdaterController?
+    private let notifier = UpdateNotifier()
+    private let notificationPolicy = UpdateNotificationPolicy()
+    private var pending = PendingUpdate()
 
-    /// The version a scheduled check found, until the user looks at it or the session ends.
-    private(set) var availableVersion: String?
+    /// The version waiting for the user: found by a scheduled check or postponed with *Remind Me
+    /// Later*, until they install or skip it.
+    @Published private(set) var availableVersion: String?
 
     override init() {
         super.init()
         controller = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: self)
+            startingUpdater: true, updaterDelegate: self, userDriverDelegate: self)
+        notifier.onClick = { [weak self] in self?.checkForUpdates() }
+        // An update was still waiting when Flick quit: look again now rather than at the next
+        // scheduled check, which can be up to a day away.
+        if pending.takeWaitingFromLastLaunch() {
+            controller?.updater.checkForUpdatesInBackground()
+        }
     }
 
     /// False while a check or an update is in progress.
@@ -37,6 +50,21 @@ final class Updater: NSObject, @preconcurrency SPUStandardUserDriverDelegate {
         controller?.checkForUpdates(nil)
     }
 
+    // MARK: - SPUUpdaterDelegate (called on the main thread)
+
+    func updater(
+        _ updater: SPUUpdater, userDidMake choice: SPUUserUpdateChoice, forUpdate updateItem: SUAppcastItem,
+        state: SPUUserUpdateState
+    ) {
+        switch choice {
+        case .install: pending.userChose(.install, version: updateItem.displayVersionString)
+        case .skip: pending.userChose(.skip, version: updateItem.displayVersionString)
+        case .dismiss: pending.userChose(.later, version: updateItem.displayVersionString)
+        @unknown default: return
+        }
+        availableVersion = pending.version
+    }
+
     // MARK: - SPUStandardUserDriverDelegate (called on the main thread)
 
     var supportsGentleScheduledUpdateReminders: Bool { true }
@@ -51,15 +79,15 @@ final class Updater: NSObject, @preconcurrency SPUStandardUserDriverDelegate {
         _ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState
     ) {
         if !handleShowingUpdate {
-            availableVersion = update.displayVersionString
+            pending.found(update.displayVersionString)
+            availableVersion = pending.version
+            if notificationPolicy.shouldNotify(about: update.versionString) {
+                notifier.post(version: update.displayVersionString)
+            }
         }
     }
 
     func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
-        availableVersion = nil
-    }
-
-    func standardUserDriverWillFinishUpdateSession() {
-        availableVersion = nil
+        notifier.removeDelivered()
     }
 }
