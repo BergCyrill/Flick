@@ -37,7 +37,21 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "sparkle": "sparkle"
+      }
+    },
+    "sparkle": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789340322,
+        "narHash": "sha256-Cu/Okr7B/E7PXdwC+KA0mE6i9IGefrB0Vt3KXD4+6FQ=",
+        "type": "tarball",
+        "url": "https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz"
       }
     },
     "systems": {

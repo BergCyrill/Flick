@@ -78,6 +78,16 @@ Never create a second certificate: a new one changes the designated requirement,
 user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
 password manager.
 
+Updates are signed with a separate EdDSA key, created once the same way:
+
+```sh
+scripts/make-update-key.sh      # login keychain, ~/flick-update-key, prints the public key
+```
+
+Keep the private key in the password manager and the `SPARKLE_ED_PRIVATE_KEY` secret; the
+public key is `SUPublicEDKey` in `support/Info.plist`. Losing the private key means installed
+copies can't be updated any more.
+
 ## Releases
 
 Every merge to `main` that brings a `feat`, `fix` or breaking commit publishes a release:
