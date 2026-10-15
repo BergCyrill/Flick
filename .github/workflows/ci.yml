@@ -13,13 +13,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - uses: ./.github/actions/setup
       - name: Test
-        run: nix develop -c task test
+        run: task test
       - name: Lint
-        run: nix develop -c task lint
+        run: task lint
       - name: Build
-        run: nix develop -c task build
+        run: task build
 
   release-dry:
     # Signs with the real certificate, so only for branches of this repository: forks get no
@@ -31,16 +31,16 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - uses: ./.github/actions/setup
       - name: Import the signing certificate
         env:
           SIGNING_CERT_P12: ${{ secrets.SIGNING_CERT_P12 }}
           SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
-        run: nix develop -c scripts/ci-keychain.sh import
+        run: scripts/ci-keychain.sh import
       - name: Dry-run the release
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
-        run: nix develop -c task release DRY=1
+        run: task release DRY=1
       - name: Delete the keychain
         if: always()
         run: scripts/ci-keychain.sh delete
