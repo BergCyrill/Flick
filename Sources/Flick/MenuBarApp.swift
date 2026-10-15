@@ -4,7 +4,7 @@ import FlickCore
 
 /// Menu-bar item, Accessibility handling and wiring of the whole app.
 @MainActor
-final class MenuBarApp: NSObject, NSApplicationDelegate {
+final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private static let settingsURL = URL(
         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
     /// Seconds an Accessibility call may block. Set on the system-wide element it applies to
@@ -16,6 +16,8 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
     private let statusLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let accessLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let pauseItem = NSMenuItem(title: "Pause gestures", action: nil, keyEquivalent: "")
+    private let checkItem = NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: "")
+    private let updater = Updater()
     private var router: InputRouter?
     private var tap: EventTap?
     private var trustTimer: Timer?
@@ -78,9 +80,13 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
+        checkItem.target = self
+        checkItem.action = #selector(checkForUpdates)
+        menu.addItem(checkItem)
         menu.addItem(.separator())
         menu.addItem(
             NSMenuItem(title: "Quit Flick", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.delegate = self
         item.menu = menu
         statusItem = item
     }
@@ -133,6 +139,14 @@ final class MenuBarApp: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         settingsWindow.show()
+    }
+
+    @objc private func checkForUpdates() {
+        updater.checkForUpdates()
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        checkItem.isEnabled = updater.canCheckForUpdates
     }
 
     @objc private func openAccessibilitySettings() {
