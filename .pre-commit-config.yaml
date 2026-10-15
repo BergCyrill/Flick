@@ -22,3 +22,8 @@ repos:
         entry: swift format lint --strict
         language: system
         types: [swift]
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        types: [shell]

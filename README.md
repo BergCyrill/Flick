@@ -42,6 +42,22 @@ docs/logo/               logo lockups (light/dark), mark, social preview
 docs/superpowers/        spec and implementation plan
 ```
 
+## Code signing
+
+Builds are signed with a self-signed certificate, *Flick Code Signing*. macOS ties the
+Accessibility permission to Flick's bundle ID and this certificate, so the permission survives
+rebuilds and updates. The maintainer creates the certificate once:
+
+```sh
+scripts/make-signing-cert.sh    # imports it into the login keychain, writes ~/flick-signing
+```
+
+It prints the next steps: keep the `.p12` and its password in the password manager, set the
+GitHub secrets `SIGNING_CERT_P12` and `SIGNING_CERT_PASSWORD`, delete `~/flick-signing`.
+Never create a second certificate: a new one changes the designated requirement, and every
+user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
+password manager.
+
 ## Usage
 
 Put the pointer on a window's titlebar (the top 40 pt, toolbars included), then:
