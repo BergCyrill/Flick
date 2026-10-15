@@ -8,8 +8,10 @@ app=$1
 name=${FLICK_SIGNING_NAME:-Flick Code Signing}
 
 # By hash: codesign rejects a name that matches more than one certificate. Without -v, so the
-# self-signed (untrusted) certificate is listed too.
-hash=$(security find-identity -p codesigning | awk -v name="\"$name\"" 'index($0, name) { print $2; exit }')
+# self-signed (untrusted) certificate is listed too. The listing is read in full first: awk
+# stopping at the first match could make `security` fail with SIGPIPE under pipefail.
+identities=$(security find-identity -p codesigning)
+hash=$(awk -v name="\"$name\"" 'index($0, name) { print $2; exit }' <<<"$identities")
 
 if [[ -n $hash ]]; then
   codesign --force --sign "$hash" "$app"

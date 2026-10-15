@@ -8,7 +8,10 @@ set -euo pipefail
 name="Flick Code Signing"
 out=${1:-"$HOME/flick-signing"}
 
-if security find-identity -p codesigning | grep -qF "\"$name\""; then
+# Read the whole listing first: a reader that stops at the first match can make `security` fail
+# with SIGPIPE, and under pipefail the check would then let a second certificate through.
+identities=$(security find-identity -p codesigning)
+if grep -qF "\"$name\"" <<<"$identities"; then
   echo "error: \"$name\" is already in the keychain; Flick needs that one, not a new one." >&2
   echo "On another Mac, import the .p12 from the password manager instead." >&2
   exit 1
