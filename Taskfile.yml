@@ -48,6 +48,26 @@ tasks:
     cmds:
       - git-cliff --unreleased --strip all
 
+  dmg:
+    desc: Package build/Flick.app as build/Flick-<version>.dmg
+    deps: [bundle]
+    vars:
+      STAGE: build/dmg
+      DMG: build/Flick-{{.VERSION}}.dmg
+    cmds:
+      - rm -rf {{.STAGE}} {{.DMG}}
+      - mkdir -p {{.STAGE}}
+      - ditto {{.APP}} {{.STAGE}}/Flick.app
+      - ln -s /Applications {{.STAGE}}/Applications
+      - hdiutil create -volname Flick -srcfolder {{.STAGE}} -format UDZO -ov {{.DMG}}
+      - hdiutil verify {{.DMG}}
+      - rm -rf {{.STAGE}}
+
+  release:
+    desc: Test, build, check and publish a release on GitHub (DRY=1 stops before publishing)
+    cmds:
+      - DRY={{.DRY}} scripts/release.sh
+
   run:
     desc: Bundle and (re)start Flick
     deps: [bundle]
