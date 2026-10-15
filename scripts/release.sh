@@ -16,6 +16,12 @@ fail() {
   exit 1
 }
 
+# In CI the update key can only come from the secret; without it a dry run would pass with an
+# unsigned appcast and hide the missing secret until the real release.
+if [[ -n ${CI:-} ]]; then
+  : "${SPARKLE_ED_PRIVATE_KEY:?is not set — add the GitHub secret, see README → Code signing}"
+fi
+
 notes=$(git-cliff --unreleased --strip all 2>/dev/null)
 if [[ -z ${notes//[[:space:]]/} ]]; then
   echo "Nothing to release: no feat, fix or breaking commits since the last tag."
