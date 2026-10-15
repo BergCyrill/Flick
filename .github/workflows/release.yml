@@ -16,17 +16,17 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702 # v31.11.2
+      - uses: ./.github/actions/setup
       - name: Import the signing certificate
         env:
           SIGNING_CERT_P12: ${{ secrets.SIGNING_CERT_P12 }}
           SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
-        run: nix develop -c scripts/ci-keychain.sh import
+        run: scripts/ci-keychain.sh import
       - name: Release
         env:
           GH_TOKEN: ${{ github.token }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
-        run: nix develop -c task release
+        run: task release
       - name: Delete the keychain
         if: always()
         run: scripts/ci-keychain.sh delete
