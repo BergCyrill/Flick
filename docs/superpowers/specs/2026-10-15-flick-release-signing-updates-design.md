@@ -131,7 +131,13 @@ settles it. Fallback: trust it for code signing on the runner with
 - **Next version:** `git-cliff --bumped-version` over the commits since the last tag. `fix` →
   patch, `feat` → minor, breaking → minor while below 1.0, major from 1.0. Merges with only
   `docs`, `chore`, `ci`, `test`, `refactor`, `style` or `build` commits don't release.
-- **First release:** v0.1.0, the version `Info.plist` already carries.
+  Breaking means `!` after the type or a `BREAKING CHANGE:` footer, on any type.
+- **Whether to release:** git-cliff's own answer isn't enough — before the first tag it always
+  answers v0.1.0, and with nothing to release it repeats the last tag. A release happens when
+  the release notes since the last tag are not empty: they list exactly the `feat`, `fix` and
+  breaking commits.
+- **First release:** v0.1.0, git-cliff's initial tag. `support/Info.plist` holds only the
+  placeholders `0.0.0` / `0`.
 - **Build number:** `git rev-list --count HEAD`. It only grows on `main`; Sparkle compares it.
 - **Stamping:** `support/Info.plist` keeps placeholders; `task bundle` writes
   `CFBundleShortVersionString` and `CFBundleVersion` with `plutil`. Local builds get
@@ -150,7 +156,8 @@ settles it. Fallback: trust it for code signing on the runner with
 
 `task release`:
 
-1. Compute the next version; if there is none, say so and exit successfully.
+1. Write the release notes; if they are empty, say so and exit successfully. Otherwise
+   compute the next version.
 2. `task test`, `task lint`.
 3. Signed bundle, then the checks under *Testing*.
 4. DMG, release notes, appcast (PR 3).
@@ -161,13 +168,17 @@ settles it. Fallback: trust it for code signing on the runner with
 ### GitHub Actions
 
 - **`ci.yml`** on pull requests: `task test`, `task lint`, an unsigned `task build`. With every
-  merge releasing, this is what keeps a broken PR from shipping.
+  merge releasing, this is what keeps a broken PR from shipping. A second job runs
+  `task release DRY=1` with the signing certificate, for pull requests from this repository
+  only (forks get no secrets), so signing, DMG and notes are exercised before a merge
+  publishes them.
 - **`release.yml`** on push to `main`: `nix develop -c task release`.
   - `concurrency: release`, not cancelling, so two quick merges release one after the other.
   - `permissions: contents: write` and nothing else.
   - Full history checkout (`fetch-depth: 0`) for tags and the build number.
-- **Runner:** the macOS image whose Xcode matches the SDK used locally (the dev shell takes
-  Swift from Xcode, see `flake.nix`). Which image is pinned in PR 2, after the spike.
+- **Runner:** `macos-26` (macOS 26.6, Xcode 26.6, Swift 6.3 at the PR 1 spike). The dev shell
+  takes Swift from Xcode, see `flake.nix`. The untrusted certificate signs there without a
+  trust step.
 - **Third-party actions:** only `actions/checkout` and a Nix installer, both pinned to commit
   SHAs. Secrets reach only our own `task` steps.
 
@@ -253,7 +264,9 @@ Anyway*.
 - `Info.plist` carries the computed version, and the build number is higher than the last
   release's.
 - `codesign --verify --strict --deep` passes; the designated requirement names the bundle ID
-  and a certificate leaf.
+  and **the** certificate leaf, `1f4706c915a7c15904d0f2201d53e9324f321f81`. Pinning the hash
+  turns a replaced certificate (which would cost every user a new Accessibility grant) into a
+  failed release.
 - `hdiutil verify` passes on the DMG.
 - The appcast signature verifies against the `SUPublicEDKey` in the built `Info.plist`, which
   catches a private key that doesn't match the public one.

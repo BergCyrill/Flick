@@ -27,3 +27,5 @@ repos:
         entry: shellcheck
         language: system
         types: [shell]
+        # direnv syntax, not a shell script
+        exclude: ^\.envrc$

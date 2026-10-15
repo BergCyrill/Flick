@@ -11,6 +11,19 @@ and quarters, pinch out to fill, pinch in to restore. A free, minimal take on
 
 ![Gesture map](docs/design/gesture-map.png)
 
+## Installing
+
+1. Download `Flick-<version>.dmg` from the
+   [latest release](https://github.com/BergCyrill/Flick/releases/latest), open it and drag
+   *Flick* onto *Applications*.
+2. Open Flick. macOS blocks it the first time because it is signed with Flick's own
+   certificate, not one from Apple: open **System Settings → Privacy & Security**, scroll to
+   the message about Flick and click **Open Anyway**.
+3. Grant Flick **Accessibility** access when it asks.
+
+A new version downloaded this way needs *Open Anyway* once more; the Accessibility permission
+stays.
+
 ## Getting started
 
 Prerequisites: macOS 14 or later, Xcode (provides Swift 6, `swift format` and `sourcekit-lsp`),
@@ -64,6 +77,24 @@ GitHub secrets `SIGNING_CERT_P12` and `SIGNING_CERT_PASSWORD`, delete `~/flick-s
 Never create a second certificate: a new one changes the designated requirement, and every
 user has to grant Accessibility again. To sign on another Mac, double-click the `.p12` from the
 password manager.
+
+## Releases
+
+Every merge to `main` that brings a `feat`, `fix` or breaking commit publishes a release:
+`.github/workflows/release.yml` runs `task release`, which tests, lints, builds, signs, checks
+the signature and publishes `Flick-<version>.dmg` with release notes on GitHub Releases. The
+version follows the commits since the last tag (git-cliff, `cliff.toml`): `fix` → patch,
+`feat` → minor, breaking → minor below 1.0 and major from 1.0. Merges with only `docs`,
+`chore`, `ci`, `build`, `test`, `refactor` or `style` commits release nothing. With squash
+merges the PR title is the commit, so it must be a Conventional Commit too.
+
+```sh
+task release-notes      # what the next release would say (empty: nothing to release)
+task release DRY=1      # the whole release locally, without publishing
+```
+
+Pull requests run `task test`, `task lint` and `task build`, and — for branches of this
+repository — `task release DRY=1` with the signing certificate (`.github/workflows/ci.yml`).
 
 ## Usage
 
@@ -142,3 +173,4 @@ available, a Magic Trackpad:
 - [ ] *Left button* and *Off*: holding right and scrolling on a titlebar opens the menu on press as usual and scrolls nothing special.
 - [ ] Fullscreen window: right-click and right-hold + scroll near the top edge behave as usual.
 - [ ] Trackpad, *Right button*: a plain two-finger click on a titlebar opens the menu as usual.
+- [ ] Release DMG: opening it shows *Flick* and an *Applications* link; after dragging and *Open Anyway*, the menu shows the release's version.

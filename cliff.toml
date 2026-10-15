@@ -1,0 +1,27 @@
+# Release notes and version bumps from Conventional Commits, for `task release`.
+# Only feat, fix and breaking commits appear; empty notes mean there is nothing to release.
+
+[changelog]
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{{ commit.message | upper_first }}
+{% endfor %}{% endfor %}"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+protect_breaking_commits = true
+commit_parsers = [
+  { field = "breaking", pattern = "true", group = "<!-- 0 -->Breaking changes" },
+  { message = "^feat", group = "<!-- 1 -->Features" },
+  { message = "^fix", group = "<!-- 2 -->Fixes" },
+  { message = ".*", skip = true },
+]
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+"
+
+[bump]
+features_always_bump_minor = true
+breaking_always_bump_major = false
+initial_tag = "v0.1.0"

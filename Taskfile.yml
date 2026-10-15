@@ -15,11 +15,12 @@ tasks:
       - swift test
 
   lint:
-    desc: Run swiftlint, swift-format (strict) and shellcheck
+    desc: Run swiftlint, swift-format (strict), shellcheck and actionlint
     cmds:
       - swiftlint lint --strict --quiet
       - swift format lint --strict --recursive Sources Tests Package.swift
       - shellcheck scripts/*.sh
+      - actionlint
 
   format:
     desc: Format all Swift sources in place
@@ -42,6 +43,31 @@ tasks:
       - plutil -replace CFBundleVersion -string "{{.BUILD}}" {{.APP}}/Contents/Info.plist
       - cp "$(swift build -c release --show-bin-path)/Flick" {{.APP}}/Contents/MacOS/Flick
       - scripts/sign-app.sh {{.APP}}
+
+  release-notes:
+    desc: Print the release notes since the last tag (empty means nothing to release)
+    cmds:
+      - git-cliff --unreleased --strip all
+
+  dmg:
+    desc: Package build/Flick.app as build/Flick-<version>.dmg
+    deps: [bundle]
+    vars:
+      STAGE: build/dmg
+      DMG: build/Flick-{{.VERSION}}.dmg
+    cmds:
+      - rm -rf {{.STAGE}} {{.DMG}}
+      - mkdir -p {{.STAGE}}
+      - ditto {{.APP}} {{.STAGE}}/Flick.app
+      - ln -s /Applications {{.STAGE}}/Applications
+      - hdiutil create -volname Flick -srcfolder {{.STAGE}} -format UDZO -ov {{.DMG}}
+      - hdiutil verify {{.DMG}}
+      - rm -rf {{.STAGE}}
+
+  release:
+    desc: Test, build, check and publish a release on GitHub (DRY=1 stops before publishing)
+    cmds:
+      - DRY={{.DRY}} scripts/release.sh
 
   run:
     desc: Bundle and (re)start Flick
