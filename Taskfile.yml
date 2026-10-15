@@ -40,14 +40,27 @@ tasks:
         sh: swift build -c release --show-bin-path
     cmds:
       - rm -rf {{.APP}}
-      - mkdir -p {{.APP}}/Contents/MacOS {{.APP}}/Contents/Frameworks
+      - mkdir -p {{.APP}}/Contents/MacOS {{.APP}}/Contents/Frameworks {{.APP}}/Contents/Resources
       - cp support/Info.plist {{.APP}}/Contents/Info.plist
+      - cp support/AppIcon.icns {{.APP}}/Contents/Resources/AppIcon.icns
       - plutil -replace CFBundleShortVersionString -string "{{.VERSION}}" {{.APP}}/Contents/Info.plist
       - plutil -replace CFBundleVersion -string "{{.BUILD}}" {{.APP}}/Contents/Info.plist
       - cp "{{.BIN}}/Flick" {{.APP}}/Contents/MacOS/Flick
       - ditto "{{.BIN}}/Sparkle.framework" {{.APP}}/Contents/Frameworks/Sparkle.framework
       - install_name_tool -add_rpath @executable_path/../Frameworks {{.APP}}/Contents/MacOS/Flick
       - scripts/sign-app.sh {{.APP}}
+
+  icon:
+    desc: Render support/AppIcon.svg into support/AppIcon.icns (commit both)
+    cmds:
+      - rm -rf build/AppIcon.iconset
+      - mkdir -p build/AppIcon.iconset
+      - |
+        for size in 16 32 128 256 512; do
+          rsvg-convert -w "$size" -h "$size" support/AppIcon.svg -o "build/AppIcon.iconset/icon_${size}x${size}.png"
+          rsvg-convert -w "$((size * 2))" -h "$((size * 2))" support/AppIcon.svg -o "build/AppIcon.iconset/icon_${size}x${size}@2x.png"
+        done
+      - iconutil -c icns build/AppIcon.iconset -o support/AppIcon.icns
 
   release-notes:
     desc: Print the release notes since the last tag (empty means nothing to release)

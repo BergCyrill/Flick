@@ -58,6 +58,7 @@ Sources/FlickCore/       pure logic: geometry, layout, gesture recognition (unit
 Sources/Flick/           macOS adapters: event tap, Accessibility, overlay, menu-bar app
 Tests/FlickCoreTests/    swift-testing suites for FlickCore
 support/Info.plist       app bundle metadata used by `task bundle`
+support/AppIcon.*        app icon: edit the SVG, then `task icon` regenerates the .icns
 docs/design/             design drivers (gesture map, live preview)
 docs/logo/               logo lockups (light/dark), mark, social preview
 docs/superpowers/        spec and implementation plan

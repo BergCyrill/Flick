@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Flick's app icon: the mark from docs/logo on macOS's icon grid (824 pt rounded square on a
+       1024 canvas), so macOS 26+ keeps its shape. `task icon` renders it into AppIcon.icns. -->
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EEF1F5"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#background)" filter="url(#shadow)"/>
+  <g transform="translate(192 192) scale(10)">
+    <rect x="4" y="4" width="26" height="26" rx="6" fill="#2F6BFF"/>
+    <rect x="34" y="4" width="26" height="26" rx="6" fill="#D3D8E0"/>
+    <rect x="4" y="34" width="26" height="26" rx="6" fill="#D3D8E0"/>
+    <rect x="34" y="34" width="26" height="26" rx="6" fill="#D3D8E0"/>
+    <path d="M53 53 L39 39 M39 48 V39 H48" fill="none" stroke="#15181D" stroke-width="4.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
