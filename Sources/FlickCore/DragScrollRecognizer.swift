@@ -11,8 +11,8 @@ public final class DragScrollRecognizer {
         case pressed(GlobalPoint)
         /// Not a titlebar drag: its scrolls go to the app until release.
         case ignored
-        /// Titlebar drag: its scrolls are swallowed. `amount` counts away from you as positive.
-        case claimed(GestureContext, amount: Double, target: Target?)
+        /// Titlebar drag: its scrolls are swallowed. `ladder` is how far scrolling has got.
+        case claimed(GestureContext, ladder: ScrollLadder)
     }
 
     private let probe: TitlebarProbe
@@ -67,17 +67,17 @@ public final class DragScrollRecognizer {
     }
 
     private func follow(_ location: GlobalPoint) {
-        guard case let .claimed(context, amount, target) = state else { return }
+        guard case let .claimed(context, ladder) = state else { return }
         let moved = GestureContext(window: context.window, pointer: location, drag: context.drag)
-        state = .claimed(moved, amount: amount, target: target)
-        if target != nil {
+        state = .claimed(moved, ladder: ladder)
+        if let target = ladder.target {
             onUpdate(.preview(moved, target))
         }
     }
 
     private func release() {
-        if case let .claimed(context, _, target) = state {
-            if let target {
+        if case let .claimed(context, ladder) = state {
+            if let target = ladder.target {
                 onUpdate(.commit(context, target))
             } else {
                 onUpdate(.cancel)
@@ -95,7 +95,7 @@ public final class DragScrollRecognizer {
                 state = .ignored
                 return .passThrough
             }
-            state = .claimed(context, amount: 0, target: nil)
+            state = .claimed(context, ladder: ScrollLadder())
         case .claimed:
             break
         }
@@ -117,12 +117,12 @@ public final class DragScrollRecognizer {
     }
 
     private func accumulate(deltaY: Double, precise: Bool, inverted: Bool) {
-        guard case let .claimed(context, oldAmount, oldTarget) = state else { return }
-        let amount = oldAmount + ScrollTarget.step(deltaY: deltaY, invertedFromDevice: inverted)
-        let target = ScrollTarget.target(amount: amount, precise: precise)
-        state = .claimed(context, amount: amount, target: target)
-        if target != oldTarget {
-            onUpdate(.preview(context, target))
+        guard case .claimed(let context, var ladder) = state else { return }
+        let oldTarget = ladder.target
+        ladder.scroll(deltaY: deltaY, precise: precise, invertedFromDevice: inverted)
+        state = .claimed(context, ladder: ladder)
+        if ladder.target != oldTarget {
+            onUpdate(.preview(context, ladder.target))
         }
     }
 }

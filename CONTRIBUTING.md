@@ -71,6 +71,8 @@ mouse where available.
 
 - [ ] Drag a Finder, Safari, Terminal and VS Code window by its titlebar and scroll away: fill preview; release: the window fills and stays filled.
 - [ ] Scroll towards you while dragging a window Flick snapped: original-size preview under the pointer that follows it; release: original size where you let go, fully on screen.
+- [ ] Keep scrolling away: the preview steps through left half, right half, top-left, top-right, bottom-left, bottom-right, top half, bottom half, one slot per wheel notch even when spinning fast, and stays on bottom half; release snaps to the slot shown. Scrolling back steps back right away.
+- [ ] Same with a Magic Mouse or two fingers on a trackpad: a short scroll fills, each further slot takes a bit more, and it's easy to stop on a slot.
 - [ ] Scroll away and back before releasing: no preview, the window stays where you dropped it.
 - [ ] Natural scrolling off: same directions as with it on.
 - [ ] Trackpad: click-hold a titlebar and scroll with two other fingers: same behaviour.
@@ -80,7 +82,7 @@ mouse where available.
 
 **Mouse: right button held**
 
-- [ ] *Right button*: hold right on a Finder, Safari, Terminal and VS Code titlebar and scroll away: fill preview; release: the window fills and stays filled. Towards you on a window Flick snapped: restores to its frame from before the first snap.
+- [ ] *Right button*: hold right on a Finder, Safari, Terminal and VS Code titlebar and scroll away: fill preview; release: the window fills and stays filled. Keep scrolling: the same slots as while dragging. Towards you on a window Flick snapped: restores to its frame from before the first snap.
 - [ ] *Right button*: a plain right-click on a titlebar or toolbar (Finder *Customize Toolbar…*, a Safari tab, VS Code's title bar) opens the menu once, on release, also after holding the button for a second; choosing an item works.
 - [ ] *Right button*: hold, scroll away and back, release: no menu, nothing moves.
 - [ ] Right-clicks in window contents, on the desktop and in the Dock behave as usual with every picker value.

@@ -139,9 +139,12 @@ private extension ScrollButton {
     var hint: String {
         switch self {
         case .off: "Scrolling while a button is held always reaches the app."
-        case .left: "Drag a window by its titlebar, scroll away to fill, towards you to restore."
+        case .left:
+            "Drag a window by its titlebar, scroll away to fill and further for halves and quarters, "
+                + "towards you to restore."
         case .right:
-            "Hold the right button on a titlebar, scroll away to fill, towards you to restore. "
+            "Hold the right button on a titlebar, scroll away to fill and further for halves and quarters, "
+                + "towards you to restore. "
                 + "Right-click menus on titlebars open on release."
         case .both: "Either button works."
         }

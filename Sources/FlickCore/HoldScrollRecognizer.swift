@@ -10,8 +10,8 @@ public final class HoldScrollRecognizer {
         case idle
         /// Not a claimed press: everything passes until the release.
         case ignored
-        /// Titlebar press swallowed. `amount` counts away from you as positive.
-        case holding(GestureContext, amount: Double, target: Target?, scrolled: Bool)
+        /// Titlebar press swallowed. `ladder` is how far scrolling has got.
+        case holding(GestureContext, ladder: ScrollLadder, scrolled: Bool)
     }
 
     private let probe: TitlebarProbe
@@ -70,15 +70,15 @@ public final class HoldScrollRecognizer {
             return .passThrough
         }
         let context = GestureContext(window: window, pointer: location)
-        state = .holding(context, amount: 0, target: nil, scrolled: false)
+        state = .holding(context, ladder: ScrollLadder(), scrolled: false)
         return .swallow
     }
 
     private func follow(_ location: GlobalPoint) -> EventDecision {
-        guard case let .holding(context, amount, target, scrolled) = state else { return .passThrough }
+        guard case let .holding(context, ladder, scrolled) = state else { return .passThrough }
         let moved = GestureContext(window: context.window, pointer: location)
-        state = .holding(moved, amount: amount, target: target, scrolled: scrolled)
-        if target != nil {
+        state = .holding(moved, ladder: ladder, scrolled: scrolled)
+        if let target = ladder.target {
             onUpdate(.preview(moved, target))
         }
         return .swallow
@@ -86,8 +86,8 @@ public final class HoldScrollRecognizer {
 
     private func release() -> EventDecision {
         defer { state = .idle }
-        guard case let .holding(context, _, target, scrolled) = state else { return .passThrough }
-        if let target {
+        guard case let .holding(context, ladder, scrolled) = state else { return .passThrough }
+        if let target = ladder.target {
             onUpdate(.commit(context, target))
             return .swallow
         }
@@ -99,12 +99,12 @@ public final class HoldScrollRecognizer {
     }
 
     private func scroll(deltaY: Double, precise: Bool, inverted: Bool) -> EventDecision {
-        guard case let .holding(context, oldAmount, oldTarget, _) = state else { return .passThrough }
-        let amount = oldAmount + ScrollTarget.step(deltaY: deltaY, invertedFromDevice: inverted)
-        let target = ScrollTarget.target(amount: amount, precise: precise)
-        state = .holding(context, amount: amount, target: target, scrolled: true)
-        if target != oldTarget {
-            onUpdate(.preview(context, target))
+        guard case .holding(let context, var ladder, _) = state else { return .passThrough }
+        let oldTarget = ladder.target
+        ladder.scroll(deltaY: deltaY, precise: precise, invertedFromDevice: inverted)
+        state = .holding(context, ladder: ladder, scrolled: true)
+        if ladder.target != oldTarget {
+            onUpdate(.preview(context, ladder.target))
         }
         return .swallow
     }

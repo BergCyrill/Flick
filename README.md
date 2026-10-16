@@ -14,15 +14,15 @@
   <a href="https://github.com/BergCyrill/Flick/releases/latest"><b>Download the latest release</b></a>
 </p>
 
-![Flick snapping a window to the left half with a swipe, filling and restoring it with pinches, then filling it by dragging with a mouse and scrolling](docs/readme/demo.svg)
+![Flick snapping a window to the left half with a swipe, filling and restoring it with pinches, then dragging it with a mouse and scrolling through fill, left and right half](docs/readme/demo.svg)
 
 ## What it does
 
 - **Swipe** with two fingers on a window's titlebar to snap it to a half or a quarter of the
   screen.
 - **Pinch** out to fill the screen, pinch in to put the window back where it was.
-- **With a mouse**, drag a window by its titlebar and scroll: away from you fills, towards you
-  restores.
+- **With a mouse**, drag a window by its titlebar and scroll: away from you fills, keep scrolling
+  for the halves and quarters; towards you restores.
 - A **live preview** shows where the window will go before you let go.
 - Everything else stays as it was: gestures that start anywhere but a titlebar reach the app,
   and fullscreen windows are left alone.
@@ -57,10 +57,11 @@ Put the pointer on a window's titlebar (the top 40 pt, toolbars included):
 | Mouse, while dragging a titlebar | Result |
 |---|---|
 | scroll away from you | fill the screen under the pointer |
+| keep scrolling away | left half, right half, the four quarters, top half, bottom half |
 | scroll towards you | restore the original size, where you drop it |
 
-The window moves when you lift your fingers or release the button. Swipe or scroll back to where
-you started to cancel.
+The window moves when you lift your fingers or release the button. Scrolling back steps back
+through the slots; swipe or scroll back to where you started to cancel.
 
 ## Settings
 
