@@ -57,8 +57,8 @@
 <text x="802" y="74" font-size="15" font-weight="600" fill="#5B6270" text-anchor="start" letter-spacing="1.5">PINCH ON A TITLEBAR</text>
 <rect x="802" y="98.0" width="342" height="259.0" rx="14" fill="#FFFFFF" stroke="#E3E6EB"/>
 <text x="826" y="138.0" font-size="18" font-weight="600" fill="#15181D" text-anchor="start">Pinch out: fill</text>
-<text x="826" y="166.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen,</text>
-<text x="826" y="188.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">with an 8 pt margin.</text>
+<text x="826" y="166.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen, with or</text>
+<text x="826" y="188.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">without margins, like macOS.</text>
 <rect x="826" y="218.0" width="294" height="115.0" rx="6" fill="#DDE1E7"/>
 <rect x="826" y="218.0" width="294" height="6" rx="3" fill="#C5CAD3"/>
 <rect x="830" y="228.0" width="286" height="101.0" rx="3" fill="#E8792F"/>
