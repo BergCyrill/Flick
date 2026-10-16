@@ -15,6 +15,14 @@ final class ScreenAdapter: ScreenProvider {
         }
         return nil
     }
+
+    /// *Tiled windows have margins* from System Settings → Desktop & Dock, read fresh each time
+    /// so a change applies to the next snap. `nil` until the switch has been touched.
+    static var tiledWindowMargins: Bool? {
+        let domain = "com.apple.WindowManager" as CFString
+        CFPreferencesAppSynchronize(domain)
+        return CFPreferencesCopyAppValue("EnableTiledWindowMargins" as CFString, domain) as? Bool
+    }
 }
 
 extension GlobalRect {

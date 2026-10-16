@@ -31,7 +31,9 @@ final class MenuBarApp: NSObject, NSApplicationDelegate, NSMenuDelegate {
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), Self.accessibilityTimeout)
         let store = self.store
         let controller = FlickController(
-            windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay(), settings: { store.settings })
+            windows: WindowMover(), screens: ScreenAdapter(), preview: PreviewOverlay(),
+            gap: { LayoutEngine.gap(tiledWindowMargins: ScreenAdapter.tiledWindowMargins) },
+            settings: { store.settings })
         // Updates are handled after the tap callback returns: moving a window takes several
         // Accessibility round-trips, and the swallow decision doesn't depend on them.
         let onUpdate: (GestureUpdate) -> Void = { update in
