@@ -60,6 +60,11 @@ struct SettingsView: View {
                 } label: {
                     Self.label("Scroll to fill and restore", hint: store.settings.scrollButton.hint)
                 }
+                Toggle(isOn: $store.settings.scrollThroughSlots) {
+                    Self.label(
+                        "Keep scrolling for halves and quarters", hint: "Off: scrolling only fills and restores.")
+                }
+                .disabled(store.settings.scrollButton == .off)
             }
             Section("Feedback") {
                 Toggle(isOn: $store.settings.livePreview) {
@@ -101,7 +106,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .toggleStyle(.switch)
-        .frame(width: 480, height: 640)
+        .frame(width: 480, height: 700)
     }
 
     private static func label(_ title: String, hint: String, isProblem: Bool = false) -> some View {
@@ -139,9 +144,12 @@ private extension ScrollButton {
     var hint: String {
         switch self {
         case .off: "Scrolling while a button is held always reaches the app."
-        case .left: "Drag a window by its titlebar, scroll away to fill, towards you to restore."
+        case .left:
+            "Drag a window by its titlebar, scroll away to fill and further for halves and quarters, "
+                + "towards you to restore."
         case .right:
-            "Hold the right button on a titlebar, scroll away to fill, towards you to restore. "
+            "Hold the right button on a titlebar, scroll away to fill and further for halves and quarters, "
+                + "towards you to restore. "
                 + "Right-click menus on titlebars open on release."
         case .both: "Either button works."
         }

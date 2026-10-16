@@ -57,8 +57,8 @@
 <text x="802" y="74" font-size="15" font-weight="600" fill="#5B6270" text-anchor="start" letter-spacing="1.5">PINCH ON A TITLEBAR</text>
 <rect x="802" y="98.0" width="342" height="259.0" rx="14" fill="#FFFFFF" stroke="#E3E6EB"/>
 <text x="826" y="138.0" font-size="18" font-weight="600" fill="#15181D" text-anchor="start">Pinch out: fill</text>
-<text x="826" y="166.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen,</text>
-<text x="826" y="188.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">with an 8 pt margin.</text>
+<text x="826" y="166.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen, with or</text>
+<text x="826" y="188.0" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">without margins, like macOS.</text>
 <rect x="826" y="218.0" width="294" height="115.0" rx="6" fill="#DDE1E7"/>
 <rect x="826" y="218.0" width="294" height="6" rx="3" fill="#C5CAD3"/>
 <rect x="830" y="228.0" width="286" height="101.0" rx="3" fill="#E8792F"/>
@@ -76,11 +76,11 @@
 <line x1="90.0" y1="714" x2="90.0" y2="720" stroke="#15181D" stroke-width="2" stroke-linecap="round"/>
 <path d="M114.0 732.0 L114.0 714.0 M109.0 720.0 L114.0 714.0 L119.0 720.0" fill="none" stroke="#2F6BFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="138.0" y="730" font-size="17" font-weight="600" fill="#15181D" text-anchor="start">Scroll away from you: fill</text>
-<text x="80.0" y="770" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen under the pointer</text>
-<text x="80.0" y="792" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">when you let go.</text>
-<rect x="273.3333333333333" y="794" width="112" height="52" rx="6" fill="#DDE1E7"/>
-<rect x="273.3333333333333" y="794" width="112" height="6" rx="3" fill="#C5CAD3"/>
-<rect x="277.3333333333333" y="804" width="104" height="38" rx="3" fill="#E8792F"/>
+<text x="80.0" y="770" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Fills the screen under the pointer;</text>
+<text x="80.0" y="792" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">keep scrolling for halves, quarters.</text>
+<rect x="273.3333333333333" y="806" width="112" height="52" rx="6" fill="#DDE1E7"/>
+<rect x="273.3333333333333" y="806" width="112" height="6" rx="3" fill="#C5CAD3"/>
+<rect x="277.3333333333333" y="816" width="104" height="38" rx="3" fill="#E8792F"/>
 <rect x="423.3333333333333" y="686" width="353.3333333333333" height="186" rx="14" fill="#FFFFFF" stroke="#E3E6EB"/>
 <rect x="447.3333333333333" y="708" width="20" height="30" rx="10" fill="none" stroke="#15181D" stroke-width="2"/>
 <line x1="457.3333333333333" y1="714" x2="457.3333333333333" y2="720" stroke="#15181D" stroke-width="2" stroke-linecap="round"/>
@@ -88,10 +88,10 @@
 <text x="505.3333333333333" y="730" font-size="17" font-weight="600" fill="#15181D" text-anchor="start">Scroll towards you: restore</text>
 <text x="447.3333333333333" y="770" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">Original size, right where</text>
 <text x="447.3333333333333" y="792" font-size="15" font-weight="400" fill="#5B6270" text-anchor="start">you drop the window.</text>
-<rect x="640.6666666666666" y="794" width="112" height="52" rx="6" fill="#DDE1E7"/>
-<rect x="640.6666666666666" y="794" width="112" height="6" rx="3" fill="#C5CAD3"/>
-<rect x="644.7" y="804" width="104" height="38" rx="3" fill="none" stroke="#8A919C" stroke-width="1.5" stroke-dasharray="4 3"/>
-<rect x="690.3" y="813.6" width="39.6" height="15.1" rx="3" fill="#E8792F"/>
+<rect x="640.6666666666666" y="806" width="112" height="52" rx="6" fill="#DDE1E7"/>
+<rect x="640.6666666666666" y="806" width="112" height="6" rx="3" fill="#C5CAD3"/>
+<rect x="644.7" y="816" width="104" height="38" rx="3" fill="none" stroke="#8A919C" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="690.3" y="825.6" width="39.6" height="15.1" rx="3" fill="#E8792F"/>
 <rect x="790.6666666666666" y="686" width="353.3333333333333" height="186" rx="14" fill="#FFFFFF" stroke="#E3E6EB"/>
 <rect x="814.6666666666666" y="708" width="20" height="30" rx="10" fill="none" stroke="#15181D" stroke-width="2"/>
 <path d="M824.6666666666666 708 V722 H834.6666666666666 V718 A10 10 0 0 0 824.6666666666666 708 Z" fill="#2F6BFF"/>

@@ -18,6 +18,7 @@ import Testing
         #expect(settings.pinchToFillRestore)
         #expect(settings.scrollButton == .left)
         #expect(settings.livePreview)
+        #expect(settings.scrollThroughSlots)
     }
 
     @Test func keysThatWereNeverWrittenKeepTheirDefaults() {
@@ -32,6 +33,7 @@ import Testing
             settings.pinchToFillRestore = false
             settings.scrollButton = .both
             settings.livePreview = false
+            settings.scrollThroughSlots = false
             settings.save(to: defaults)
             #expect(FlickSettings(defaults: defaults) == settings)
         }
@@ -41,8 +43,10 @@ import Testing
         withDefaults { defaults in
             var settings = FlickSettings()
             settings.livePreview = false
+            settings.scrollThroughSlots = false
             settings.save(to: defaults)
             #expect(defaults.object(forKey: "livePreview") as? Bool == false)
+            #expect(defaults.object(forKey: "scrollThroughSlots") as? Bool == false)
             #expect(defaults.object(forKey: "swipeToSnap") as? Bool == true)
         }
     }

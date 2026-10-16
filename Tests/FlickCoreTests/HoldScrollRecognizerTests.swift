@@ -78,6 +78,23 @@ import Testing
         #expect(result.updates.isEmpty)
     }
 
+    @Test func scrollingFurtherCyclesThroughTheSlotsAndReleaseCommitsTheLast() {
+        let result = run([.rightMouseDown(location: press), wheel(1), wheel(1), .rightMouseUp(location: press)])
+        #expect(
+            result.updates == [
+                .preview(context, .slot(.fill)), .preview(context, .slot(.leftHalf)),
+                .commit(context, .slot(.leftHalf)),
+            ])
+    }
+
+    @Test func withoutScrollingThroughSlotsItStaysOnFill() {
+        var settings = settings(.right)
+        settings.scrollThroughSlots = false
+        let result = run(
+            [.rightMouseDown(location: press), wheel(1), wheel(1), .rightMouseUp(location: press)], settings: settings)
+        #expect(result.updates == [.preview(context, .slot(.fill)), .commit(context, .slot(.fill))])
+    }
+
     @Test func scrollingBackToNeutralCancelsWithoutAReplay() {
         let result = run([.rightMouseDown(location: press), wheel(1), wheel(-1), .rightMouseUp(location: press)])
         #expect(result.decisions == [.swallow, .swallow, .swallow, .swallow])

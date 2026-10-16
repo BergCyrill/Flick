@@ -7,6 +7,8 @@ public struct FlickSettings: Equatable, Sendable {
     public var pinchToFillRestore = true
     public var scrollButton = ScrollButton.left
     public var livePreview = true
+    /// Scrolling on past fill steps through the halves and quarters.
+    public var scrollThroughSlots = true
 
     public init() {}
 
@@ -44,6 +46,7 @@ public struct FlickSettings: Equatable, Sendable {
             ("swipeToSnap", \.swipeToSnap),
             ("pinchToFillRestore", \.pinchToFillRestore),
             ("livePreview", \.livePreview),
+            ("scrollThroughSlots", \.scrollThroughSlots),
         ]
     }
 }
