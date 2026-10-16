@@ -26,7 +26,7 @@ public final class FlickController {
     private let windows: WindowAccess
     private let screens: ScreenProvider
     private let preview: PreviewPresenter
-    private let gap: Double
+    private let gap: @MainActor () -> Double
     private let settings: @MainActor () -> FlickSettings
     private var history = FrameHistory()
     /// The frame the preview shows right now, so an unchanged preview isn't redrawn.
@@ -36,7 +36,7 @@ public final class FlickController {
         windows: WindowAccess,
         screens: ScreenProvider,
         preview: PreviewPresenter,
-        gap: Double = LayoutEngine.defaultGap,
+        gap: @escaping @MainActor () -> Double = { LayoutEngine.defaultGap },
         settings: @escaping @MainActor () -> FlickSettings = { FlickSettings() }
     ) {
         self.windows = windows
@@ -77,7 +77,7 @@ public final class FlickController {
         switch target {
         case let .slot(slot):
             guard let visible = screens.visibleFrame(containing: context.pointer) else { return nil }
-            return LayoutEngine.frame(for: slot, in: visible, gap: gap)
+            return LayoutEngine.frame(for: slot, in: visible, gap: gap())
         case .restore:
             guard let original = history.peek(for: context.window) else { return nil }
             guard let drag = context.drag else { return original }
