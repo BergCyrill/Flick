@@ -61,7 +61,9 @@ Put the pointer on a window's titlebar (the top 40 pt, toolbars included):
 | scroll towards you | restore the original size, where you drop it |
 
 The window moves when you lift your fingers or release the button. Scrolling back steps back
-through the slots; swipe or scroll back to where you started to cancel.
+through the slots; swipe or scroll back to where you started to cancel. Like macOS's own tiling,
+windows go edge to edge unless *Tiled windows have margins* is on in **System Settings → Desktop
+& Dock**.
 
 ## Settings
 

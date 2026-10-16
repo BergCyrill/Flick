@@ -10,11 +10,11 @@ import Testing
         (Slot.leftHalf, GlobalRect(x: 8, y: 33, width: 708, height: 859)),
         (.rightHalf, GlobalRect(x: 724, y: 33, width: 708, height: 859)),
         (.topHalf, GlobalRect(x: 8, y: 33, width: 1424, height: 425)),
-        (.bottomHalf, GlobalRect(x: 8, y: 467, width: 1424, height: 425)),
+        (.bottomHalf, GlobalRect(x: 8, y: 466, width: 1424, height: 426)),
         (.topLeft, GlobalRect(x: 8, y: 33, width: 708, height: 425)),
         (.topRight, GlobalRect(x: 724, y: 33, width: 708, height: 425)),
-        (.bottomLeft, GlobalRect(x: 8, y: 467, width: 708, height: 425)),
-        (.bottomRight, GlobalRect(x: 724, y: 467, width: 708, height: 425)),
+        (.bottomLeft, GlobalRect(x: 8, y: 466, width: 708, height: 426)),
+        (.bottomRight, GlobalRect(x: 724, y: 466, width: 708, height: 426)),
         (.fill, GlobalRect(x: 8, y: 33, width: 1424, height: 859)),
     ])
     func slotFrames(slot: Slot, expected: GlobalRect) {
@@ -30,14 +30,12 @@ import Testing
         #expect(frame.maxY <= visible.maxY - 8)
     }
 
-    @Test func neighboursAreSeparatedByAtLeastTheGap() {
+    @Test func neighboursAreSeparatedByExactlyTheGap() {
         let left = LayoutEngine.frame(for: .topLeft, in: visible)
         let right = LayoutEngine.frame(for: .topRight, in: visible)
         let below = LayoutEngine.frame(for: .bottomLeft, in: visible)
-        #expect(right.minX - left.maxX >= 8)
-        #expect(right.minX - left.maxX <= 9)
-        #expect(below.minY - left.maxY >= 8)
-        #expect(below.minY - left.maxY <= 9)
+        #expect(right.minX - left.maxX == 8)
+        #expect(below.minY - left.maxY == 8)
     }
 
     @Test func worksOnASecondaryDisplayWithNegativeOrigin() {
@@ -47,7 +45,22 @@ import Testing
                 == GlobalRect(x: 1448, y: -1047, width: 948, height: 1039))
         #expect(
             LayoutEngine.frame(for: .bottomRight, in: secondary)
-                == GlobalRect(x: 2404, y: -523, width: 948, height: 515))
+                == GlobalRect(x: 2404, y: -524, width: 948, height: 516))
+    }
+
+    @Test(arguments: [(Bool?.none, 0.0), (false, 0), (true, 8)])
+    func gapFollowsTheMacOSMarginsSetting(margins: Bool?, gap: Double) {
+        #expect(LayoutEngine.gap(tiledWindowMargins: margins) == gap)
+    }
+
+    @Test func withoutAGapFillCoversTheVisibleFrameAndSlotsTouch() {
+        #expect(LayoutEngine.frame(for: .fill, in: visible, gap: 0) == visible)
+        let left = LayoutEngine.frame(for: .topLeft, in: visible, gap: 0)
+        let right = LayoutEngine.frame(for: .topRight, in: visible, gap: 0)
+        let below = LayoutEngine.frame(for: .bottomLeft, in: visible, gap: 0)
+        #expect(left.maxX == right.minX)
+        #expect(left.maxY == below.minY)
+        #expect(right.maxX == visible.maxX)
     }
 
     @Test func roundsFractionalVisibleFramesToWholePoints() {

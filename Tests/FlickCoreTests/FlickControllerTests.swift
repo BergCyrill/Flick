@@ -226,4 +226,15 @@ final class FakePreview: PreviewPresenter {
         controller.handle(.commit(context, .restore))
         #expect(windows.frames[window] == byHand)
     }
+
+    @Test func eachSnapUsesTheGapAtThatMoment() {
+        windows.frames[window] = original
+        var gap = 0.0
+        let controller = FlickController(windows: windows, screens: screens, preview: preview, gap: { gap })
+        controller.handle(.commit(context, .slot(.fill)))
+        #expect(windows.frames[window] == screens.visible)
+        gap = 8
+        controller.handle(.commit(context, .slot(.fill)))
+        #expect(windows.frames[window] == GlobalRect(x: 8, y: 33, width: 1424, height: 859))
+    }
 }

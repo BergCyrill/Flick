@@ -56,7 +56,8 @@ mouse where available.
 
 **Trackpad**
 
-- [ ] Finder, Safari, Terminal, VS Code: each of the 8 swipe directions snaps to the right slot with 8 pt gaps.
+- [ ] Finder, Safari, Terminal, VS Code: each of the 8 swipe directions snaps to the right slot, edge to edge.
+- [ ] With *Tiled windows have margins* on (System Settings → Desktop & Dock), the next snap leaves 8 pt gaps, without relaunching Flick; off again, edge to edge.
 - [ ] The preview appears after a short swipe, follows direction changes, and disappears on lift.
 - [ ] Swiping back to the start before lifting leaves the window where it was.
 - [ ] Pinch out fills; pinch in afterwards restores the previous frame; a second pinch in does nothing.
