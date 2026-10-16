@@ -91,11 +91,11 @@ public final class DragScrollRecognizer {
         case .idle, .ignored:
             return .passThrough
         case let .pressed(press):
-            guard let context = claim(press: press, pointer: location) else {
+            guard let (context, ladder) = claim(press: press, pointer: location) else {
                 state = .ignored
                 return .passThrough
             }
-            state = .claimed(context, ladder: ScrollLadder())
+            state = .claimed(context, ladder: ladder)
         case .claimed:
             break
         }
@@ -103,8 +103,9 @@ public final class DragScrollRecognizer {
         return .swallow
     }
 
-    private func claim(press: GlobalPoint, pointer: GlobalPoint) -> GestureContext? {
-        guard !isPaused, settings().scrollButton.includesLeft,
+    private func claim(press: GlobalPoint, pointer: GlobalPoint) -> (GestureContext, ScrollLadder)? {
+        let settings = settings()
+        guard !isPaused, settings.scrollButton.includesLeft,
             let window = probe.window(atTitlebar: pointer),
             let current = windows.frame(of: window)
         else { return nil }
@@ -112,8 +113,9 @@ public final class DragScrollRecognizer {
         let frameAtPress = GlobalRect(
             x: current.x - (pointer.x - press.x), y: current.y - (pointer.y - press.y),
             width: current.width, height: current.height)
-        return GestureContext(
+        let context = GestureContext(
             window: window, pointer: pointer, drag: DragContext(frameAtPress: frameAtPress, pressPoint: press))
+        return (context, ScrollLadder(cycles: settings.scrollThroughSlots))
     }
 
     private func accumulate(deltaY: Double, precise: Bool, inverted: Bool) {

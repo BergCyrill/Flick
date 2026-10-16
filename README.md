@@ -72,6 +72,7 @@ Open **Settings…** (⌘,) from Flick's menu-bar icon to:
 - turn swiping, pinching and the live preview on or off;
 - choose which mouse button scroll-to-fill uses: the left one while dragging, the right one held
   on a titlebar (the window stays put), both, or none;
+- turn off scrolling on past fill to the halves and quarters;
 - start Flick at login;
 - choose whether and how often Flick checks for updates.
 

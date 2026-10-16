@@ -75,6 +75,14 @@ import Testing
             ])
     }
 
+    @Test func withoutScrollingThroughSlotsItStaysOnFill() {
+        var settings = FlickSettings()
+        settings.scrollThroughSlots = false
+        let result = run(
+            [.mouseDown(location: press), wheel(1), wheel(1), .mouseUp(location: pointer)], settings: settings)
+        #expect(result.updates == [.preview(context, .slot(.fill)), .commit(context, .slot(.fill))])
+    }
+
     @Test func scrollingBackToNeutralCancels() {
         let result = run([.mouseDown(location: press), wheel(1), wheel(-1), .mouseUp(location: pointer)])
         #expect(result.updates == [.preview(context, .slot(.fill)), .preview(context, nil), .cancel])

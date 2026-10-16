@@ -74,6 +74,7 @@ mouse where available.
 - [ ] Scroll towards you while dragging a window Flick snapped: original-size preview under the pointer that follows it; release: original size where you let go, fully on screen.
 - [ ] Keep scrolling away: the preview steps through left half, right half, top-left, top-right, bottom-left, bottom-right, top half, bottom half, one slot per wheel notch even when spinning fast, and stays on bottom half; release snaps to the slot shown. Scrolling back steps back right away.
 - [ ] Same with a Magic Mouse or two fingers on a trackpad: a short scroll fills, each further slot takes a bit more, and it's easy to stop on a slot.
+- [ ] *Keep scrolling for halves and quarters* off: scrolling away stops at fill, back cancels, towards you restores; the switch is greyed out while *Scroll to fill and restore* is *Off*.
 - [ ] Scroll away and back before releasing: no preview, the window stays where you dropped it.
 - [ ] Natural scrolling off: same directions as with it on.
 - [ ] Trackpad: click-hold a titlebar and scroll with two other fingers: same behaviour.

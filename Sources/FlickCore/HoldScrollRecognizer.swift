@@ -63,14 +63,15 @@ public final class HoldScrollRecognizer {
     }
 
     private func press(at location: GlobalPoint) -> EventDecision {
-        guard !isPaused, settings().scrollButton.includesRight,
+        let settings = settings()
+        guard !isPaused, settings.scrollButton.includesRight,
             let window = probe.window(atTitlebar: location)
         else {
             state = .ignored
             return .passThrough
         }
         let context = GestureContext(window: window, pointer: location)
-        state = .holding(context, ladder: ScrollLadder(), scrolled: false)
+        state = .holding(context, ladder: ScrollLadder(cycles: settings.scrollThroughSlots), scrolled: false)
         return .swallow
     }
 

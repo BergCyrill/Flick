@@ -1,5 +1,6 @@
 /// Turns scrolling while a mouse button is held into a target: one step towards you restores,
-/// away from you steps through the slots, from fill onwards. Scrolling back to the start cancels.
+/// away from you steps through the slots, from fill onwards, or only to fill unless it `cycles`.
+/// Scrolling back to the start cancels.
 public struct ScrollLadder: Equatable, Sendable {
     /// The slots in the order scrolling away reaches them.
     public static let slots: [Slot] = [
@@ -13,8 +14,11 @@ public struct ScrollLadder: Equatable, Sendable {
     /// Away from you counts positive: notches for a mouse wheel, points otherwise.
     private var amount: Double = 0
     private var precise = false
+    private let cycles: Bool
 
-    public init() {}
+    public init(cycles: Bool = true) {
+        self.cycles = cycles
+    }
 
     public var target: Target? {
         let step = self.step
@@ -40,7 +44,7 @@ public struct ScrollLadder: Equatable, Sendable {
     }
 
     private var highest: Double {
-        let last = Double(Self.slots.count - 1)
+        let last = cycles ? Double(Self.slots.count - 1) : 0
         return precise ? Self.preciseFirstStep + Self.preciseStep * last : last + 1
     }
 

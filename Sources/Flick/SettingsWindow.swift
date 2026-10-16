@@ -60,6 +60,11 @@ struct SettingsView: View {
                 } label: {
                     Self.label("Scroll to fill and restore", hint: store.settings.scrollButton.hint)
                 }
+                Toggle(isOn: $store.settings.scrollThroughSlots) {
+                    Self.label(
+                        "Keep scrolling for halves and quarters", hint: "Off: scrolling only fills and restores.")
+                }
+                .disabled(store.settings.scrollButton == .off)
             }
             Section("Feedback") {
                 Toggle(isOn: $store.settings.livePreview) {
@@ -101,7 +106,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .toggleStyle(.switch)
-        .frame(width: 480, height: 640)
+        .frame(width: 480, height: 700)
     }
 
     private static func label(_ title: String, hint: String, isProblem: Bool = false) -> some View {

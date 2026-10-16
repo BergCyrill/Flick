@@ -69,6 +69,26 @@ import Testing
         #expect(fingers([-20]).target == .restore)
     }
 
+    @Test func withoutCyclingItStopsAtFillAsBefore() {
+        var ladder = ScrollLadder(cycles: false)
+        for _ in 0..<5 {
+            ladder.scroll(deltaY: 1, precise: false, invertedFromDevice: false)
+        }
+        #expect(ladder.target == .slot(.fill))
+        ladder.scroll(deltaY: -1, precise: false, invertedFromDevice: false)
+        #expect(ladder.target == nil)
+        ladder.scroll(deltaY: -1, precise: false, invertedFromDevice: false)
+        #expect(ladder.target == .restore)
+    }
+
+    @Test func withoutCyclingATrackpadAlsoStopsAtFill() {
+        var ladder = ScrollLadder(cycles: false)
+        ladder.scroll(deltaY: -500, precise: true, invertedFromDevice: true)
+        #expect(ladder.target == .slot(.fill))
+        ladder.scroll(deltaY: 1, precise: true, invertedFromDevice: true)
+        #expect(ladder.target == nil)
+    }
+
     @Test func aTrackpadAlsoStopsAtTheEnds() {
         #expect(fingers([2000]).target == .slot(.bottomHalf))
         #expect(fingers([2000, -40]).target == .slot(.topHalf))
