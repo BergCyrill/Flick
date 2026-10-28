@@ -4,15 +4,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    # Sparkle's command-line tools (sign_update, generate_keys). Keep the version equal to the
-    # Sparkle package in Package.swift.
-    sparkle = {
-      url = "https://github.com/sparkle-project/Sparkle/releases/download/2.10.0/Sparkle-2.10.0.tar.xz";
-      flake = false;
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, sparkle, ... }:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachSystem [ "aarch64-darwin" "x86_64-darwin" ] (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -33,7 +27,9 @@
             librsvg
           ];
           shellHook = ''
-            export PATH="${sparkle}/bin:$PATH"
+            # Sparkle's command-line tools (sign_update, generate_keys) come with the Swift
+            # package, at its version in Package.swift, once it has resolved.
+            export PATH="$PWD/.build/artifacts/sparkle/Sparkle/bin:$PATH"
             if ! xcrun --find swift >/dev/null 2>&1; then
               echo "flick: Xcode command line tools not found, run: xcode-select --install" >&2
             fi

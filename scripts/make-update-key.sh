@@ -8,6 +8,9 @@ set -euo pipefail
 account=io.github.bergcyrill.flick
 out=${1:-"$HOME/flick-update-key"}
 
+# generate_keys comes with the Sparkle package; it's on the dev shell's PATH once resolved.
+command -v generate_keys >/dev/null || swift package resolve
+
 if existing=$(generate_keys --account "$account" -p 2>/dev/null); then
   echo "error: the keychain already has an update key for $account (public key $existing)." >&2
   echo "On another Mac, import it from the password manager: generate_keys --account $account -f <file>" >&2
