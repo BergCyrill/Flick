@@ -5,7 +5,6 @@ let package = Package(
     name: "Flick",
     platforms: [.macOS(.v14)],
     dependencies: [
-        // Keep equal to the Sparkle input in flake.nix.
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1")
     ],
     targets: [

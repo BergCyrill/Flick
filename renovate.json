@@ -34,10 +34,7 @@
     {
       "description": "Sparkle ships inside the app: its own PR right away, as a fix, so merging releases it.",
       "matchManagers": ["swift"],
-      "semanticCommitType": "fix",
-      "prBodyNotes": [
-        "⚠️ Renovate doesn't update `Package.resolved`: run `swift package resolve` and commit it to this branch."
-      ]
+      "semanticCommitType": "fix"
     }
   ]
 }
