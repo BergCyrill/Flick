@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "nix": { "enabled": true },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["* 0-5 1 * *"]
+  },
+  "customManagers": [
+    {
+      "description": "Tool versions marked with a `# renovate:` comment on the line above.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/actions/setup/action\\.yml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\n\\s*[\\w-]+[:=]\\s*(?:[\\w-]+@)?(?<currentValue>[^\\s\"]+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "CI and dev tools ship nothing: one chore PR a month, no release.",
+      "matchManagers": ["github-actions", "custom.regex", "nix"],
+      "groupName": "CI and dev tools",
+      "schedule": ["* 0-5 1 * *"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "SwiftLint and actionlint are checked against a sha256 Renovate can't compute.",
+      "matchDepNames": ["realm/SwiftLint", "rhysd/actionlint"],
+      "prBodyNotes": [
+        "⚠️ Update `swiftlint_sha256` / `actionlint_sha256` in `.github/actions/setup/action.yml`: `curl -fsSL <download URL> | shasum -a 256`. CI fails until then."
+      ]
+    },
+    {
+      "description": "Sparkle ships inside the app: its own PR right away, as a fix, so merging releases it.",
+      "matchManagers": ["swift"],
+      "semanticCommitType": "fix",
+      "prBodyNotes": [
+        "⚠️ Renovate doesn't update `Package.resolved`: run `swift package resolve` and commit it to this branch."
+      ]
+    }
+  ]
+}
